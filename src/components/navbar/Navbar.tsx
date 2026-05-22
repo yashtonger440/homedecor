@@ -21,7 +21,7 @@ const navLinks = [
   { name: "Shop", href: "/products" },
   { name: "Collections", href: "/collections" },
   { name: "About", href: "/about" },
-  { name: "Contact", href: "/" },
+  { name: "Contact", href: "/contact" },
 ];
 
 export default function Navbar() {

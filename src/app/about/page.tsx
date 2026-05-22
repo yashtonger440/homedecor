@@ -17,25 +17,6 @@ import {
 import Navbar from "@/components/navbar/Navbar";
 import Footer from "@/components/footer/Footer";
 
-const stats = [
-  {
-    number: "12K+",
-    label: "Happy Customers",
-  },
-  {
-    number: "250+",
-    label: "Luxury Products",
-  },
-  {
-    number: "4.9★",
-    label: "Customer Rating",
-  },
-  {
-    number: "8+",
-    label: "Years Experience",
-  },
-];
-
 const values = [
   {
     icon: <FiAward />,
@@ -91,6 +72,7 @@ export default function AboutPage() {
                   letterSpacing: "4px",
                   fontSize: "11px",
                   marginBottom: "16px",
+                  marginLeft: "10px"
                 }}
               >
                 About Our Brand
@@ -178,7 +160,7 @@ export default function AboutPage() {
               >
                 <div className="relative w-full h-full overflow-hidden rounded-[24px]">
                   <Image
-                    src="/images/about.jpg"
+                    src="/images/Idols/idols1.jpeg"
                     alt="About"
                     fill
                     className="object-cover hover:scale-105 transition duration-700"
@@ -261,7 +243,7 @@ export default function AboutPage() {
                 }}
               >
                 <Image
-                  src="/images/about2.jpg"
+                  src="/images/showpieces/showpiece1.jpeg"
                   alt="Story"
                   fill
                   className="object-cover"
@@ -282,6 +264,7 @@ export default function AboutPage() {
                   letterSpacing: "4px",
                   fontSize: "11px",
                   marginBottom: "14px",
+                  marginLeft: "10px"
                 }}
               >
                 Our Story
