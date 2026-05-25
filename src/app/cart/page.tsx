@@ -173,7 +173,7 @@ export default function CartPage() {
                   >
                     {freeShippingLeft === 0
                       ? "🎉 You've unlocked FREE shipping!"
-                      : `Add $${freeShippingLeft} more to get free shipping`}
+                      : `Add ₹${freeShippingLeft} more to get free shipping`}
                   </p>
                   <div className="h-[5px] rounded-full bg-[#e8e0d4] overflow-hidden">
                     <motion.div
@@ -236,7 +236,7 @@ export default function CartPage() {
                                 {item.title}
                               </h3>
                               <p className="text-[#a89880] text-[13px]">
-                                Unit price: <span className="font-semibold text-black">${item.price}</span>
+                                Unit price: <span className="font-semibold text-black">₹{item.price}</span>
                               </p>
                             </div>
 
@@ -279,11 +279,11 @@ export default function CartPage() {
                                 className="font-black text-[#111827] tracking-[-1px] leading-none"
                                 style={{ fontSize: "28px" }}
                               >
-                                ${item.price * item.quantity}
+                                ₹{item.price * item.quantity}
                               </p>
                               {item.quantity > 1 && (
                                 <p className="text-[11px] text-[#a89880]" style={{ marginTop: "3px" }}>
-                                  {item.quantity} × ${item.price}
+                                  {item.quantity} × ₹{item.price}
                                 </p>
                               )}
                             </div>
@@ -360,15 +360,15 @@ export default function CartPage() {
                 {/* Line items */}
                 <div className="flex flex-col gap-3" style={{ marginBottom: "20px" }}>
                   {[
-                    { label: "Subtotal", value: `$${subtotal}`, sub: `${cartItems.length} items` },
-                    ...(couponApplied ? [{ label: "Discount (10%)", value: `-$${discount}`, sub: "LUXURY10 applied", green: true }] : []),
+                    { label: "Subtotal", value: `₹${subtotal}`, sub: `${cartItems.length} items` },
+                    ...(couponApplied ? [{ label: "Discount (10%)", value: `-₹${discount}`, sub: "LUXURY10 applied", green: true }] : []),
                     {
                       label: "Shipping",
-                      value: shipping === 0 ? "Free" : `$${shipping}`,
-                      sub: shipping === 0 ? "🎉 You saved $40" : "Standard delivery",
+                      value: shipping === 0 ? "Free" : `₹${shipping}`,
+                      sub: shipping === 0 ? "🎉 You saved ₹40" : "Standard delivery",
                       green: shipping === 0,
                     },
-                    { label: "Tax (8%)", value: `$${tax}`, sub: "Included" },
+                    { label: "Tax (8%)", value: `₹${tax}`, sub: "Included" },
                   ].map((row) => (
                     <div key={row.label} className="flex items-center justify-between">
                       <div>
@@ -399,7 +399,7 @@ export default function CartPage() {
                 >
                   <span className="text-[18px] font-semibold text-white/60">Total</span>
                   <span className="font-black text-white tracking-[-1px]" style={{ fontSize: "20px" }}>
-                    ${total}
+                    ₹{total}
                   </span>
                 </div>
 
@@ -414,9 +414,9 @@ export default function CartPage() {
                   Proceed to Checkout
                 </motion.button>
 
-                <button className="w-full h-[48px] rounded-full border-2 border-[#111827] text-[#111827] font-bold text-[14px] flex items-center justify-center gap-2 hover:bg-[#111827] hover:text-white transition-all duration-300">
+                <Link href="/products" className="w-full h-[48px] rounded-full border-2 border-[#111827] text-[#111827] font-bold text-[14px] flex items-center justify-center gap-2 hover:bg-[#111827] hover:text-white transition-all duration-300">
                   Continue Shopping
-                </button>
+                </Link>
 
                 {/* Trust row */}
                 <div

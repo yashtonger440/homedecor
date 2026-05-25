@@ -50,8 +50,7 @@ export default function Footer() {
                 marginBottom: "28px",
               }}
             >
-              Premium furniture and luxury home decor crafted
-              for elegant modern interiors.
+              Transform your home with premium ceramic decor, marble dust art, luxury mugs, idols, wall decor, and handcrafted pieces designed for timeless elegance.
             </p>
 
             {/* Social Icons */}
@@ -95,19 +94,22 @@ export default function Footer() {
                 gap: "16px",
               }}
             >
-              {["Home", "Shop", "Collections", "Contact"].map(
-                (item, index) => (
-                  <Link
-                    key={index}
-                    href="/"
-                    className="hover:text-white transition duration-300 flex items-center gap-2 group"
-                  >
-                    {item}
+              {[
+                { name: "Home", path: "/" },
+                { name: "Shop", path: "/products" },
+                { name: "Collections", path: "/collections" },
+                { name: "Contact", path: "/contact" },
+              ].map((item, index) => (
+                <Link
+                  key={index}
+                  href={item.path}
+                  className="hover:text-white transition duration-300 flex items-center gap-2 group"
+                >
+                  {item.name}
 
-                    <FiArrowUpRight className="opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition duration-300" />
-                  </Link>
-                )
-              )}
+                  <FiArrowUpRight className="opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition duration-300" />
+                </Link>
+              ))}
             </div>
           </div>
 
@@ -128,19 +130,22 @@ export default function Footer() {
                 gap: "16px",
               }}
             >
-              {["Lamps", "Chairs", "Vases", "Wall Decor"].map(
-                (item, index) => (
-                  <Link
-                    key={index}
-                    href="/"
-                    className="hover:text-white transition duration-300 flex items-center gap-2 group"
-                  >
-                    {item}
+              {[
+                { name: "Lamps", path: "/category/" },
+                { name: "Chairs", path: "/category/chairs" },
+                { name: "Vases", path: "/category/vases" },
+                { name: "Wall Decor", path: "/category/wall-decor" },
+              ].map((item, index) => (
+                <Link
+                  key={index}
+                  href={item.path}
+                  className="hover:text-white transition duration-300 flex items-center gap-2 group"
+                >
+                  {item.name}
 
-                    <FiArrowUpRight className="opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition duration-300" />
-                  </Link>
-                )
-              )}
+                  <FiArrowUpRight className="opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition duration-300" />
+                </Link>
+              ))}
             </div>
           </div>
 

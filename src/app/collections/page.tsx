@@ -24,7 +24,7 @@ const collections = [
     subtitle: "Ceramic vases and mugs Collection",
     image: "/images/ceremicvasesandmugs.jpeg",
     description:
-      "Experience premium handcrafted furniture crafted with elegance, luxury comfort, and timeless aesthetics for modern living spaces.",
+      "Discover handcrafted ceramic vases and luxury mugs designed with timeless elegance, artistic craftsmanship, and refined details to elevate every modern living space.",
   },
 
   {
@@ -33,7 +33,7 @@ const collections = [
     subtitle: "Premium wall decor in square box designs.",
     image: "/images/premiumwalldecor.jpeg",
     description:
-      "Transform your bedroom into a luxury retreat with elegant interiors and premium modern furniture collections.",
+      "Enhance your interiors with handcrafted ceramic and marble wall decor featuring elegant square designs crafted for timeless luxury and modern living spaces.",
   },
 
   {
@@ -42,7 +42,7 @@ const collections = [
     subtitle: "Elegant idols & hanging plates.",
     image: "/images/printedplates.jpeg",
     description:
-      "Luxury office interiors designed to maximize productivity, comfort, and modern elegance.",
+      "Enhance your interiors with elegant handcrafted idols and decorative hanging plates created for luxurious and modern living spaces.",
   },
 
   {
@@ -51,7 +51,7 @@ const collections = [
     subtitle: "Luxury Light Collection",
     image: "/images/collection4.jpg",
     description:
-      "Premium lighting collections crafted to create elegant modern ambiance and luxurious interiors.",
+      "Transform your interiors with premium lighting collections designed to blend modern sophistication, comfort, and handcrafted beauty.",
   },
 ];
 
@@ -118,7 +118,7 @@ export default function CollectionsPage() {
               >
                 Crafted For
                 <br />
-                Luxury Living
+                Timeless Elegance
               </h1>
 
               <p
@@ -136,9 +136,7 @@ export default function CollectionsPage() {
                   marginLeft: "250px"
                 }}
               >
-                Explore premium handcrafted furniture and luxury home
-                decor collections designed for elegant modern interiors
-                and timeless living experiences.
+                Discover our handcrafted ceramic and marble collections, thoughtfully designed to bring elegance, artistry, and luxury into every space with timeless decor pieces made for modern living.
               </p>
 
               <div className="flex items-center justify-center gap-4 flex-wrap">
@@ -311,7 +309,7 @@ export default function CollectionsPage() {
               >
                 Discover Premium
                 <br />
-                Interior Collections
+                Ceramic & Marble Collections
               </h2>
 
               <p
@@ -321,8 +319,7 @@ export default function CollectionsPage() {
                   marginLeft: "250px"
                 }}
               >
-                Luxury handcrafted collections crafted with premium
-                materials and elegant modern aesthetics.
+                Explore our handcrafted ceramic and marble collections, designed with timeless artistry, elegant details, and premium craftsmanship to bring luxury and sophistication into every space.
               </p>
 
             </div>
@@ -452,10 +449,10 @@ export default function CollectionsPage() {
                     >
 
                       {[
-                        "Premium Quality",
-                        "Modern Design",
-                        "Luxury Comfort",
-                        "Elegant Finish",
+                        "Handcrafted Quality",
+                        "Timeless Design",
+                        "Luxury Ceramic Art",
+                        "Refined Finishing",
                       ].map((feature) => (
 
                         <div

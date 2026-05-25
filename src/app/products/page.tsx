@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiSearch, FiSliders, FiChevronDown, FiChevronLeft, FiChevronRight } from "react-icons/fi";
@@ -8,6 +8,7 @@ import Navbar from "@/components/navbar/Navbar";
 import Footer from "@/components/footer/Footer";
 import ProductCard from "@/components/products/ProductCard";
 import { products } from "@/data/products";
+import { useSearchParams } from "next/navigation";
 
 const PRODUCTS_PER_PAGE = 16;
 
@@ -58,8 +59,29 @@ const stats = [
 
 export default function ProductsPage() {
 
+    const searchParams = useSearchParams();
+    const categoryFromURL = searchParams?.get("category");
+
     const [search, setSearch] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("All");
+
+    useEffect(() => {
+        if (categoryFromURL) {
+            const formattedCategory =
+                categoryFromURL === "vases"
+                    ? "Vases"
+                    : categoryFromURL === "wall-decor"
+                        ? "Wall decor"
+                        : categoryFromURL === "showpieces"
+                            ? "Showpieces"
+                            : categoryFromURL === "idols"
+                                ? "Handcraft Idols"
+                                : "All";
+
+            setSelectedCategory(formattedCategory);
+        }
+    }, [categoryFromURL]);
+
     const [sortBy, setSortBy] = useState("default");
     const [currentPage, setCurrentPage] = useState(1);
 
@@ -183,8 +205,7 @@ export default function ProductsPage() {
                                 className="text-[15px] text-[#6b6560] leading-[1.8] md:text-right md:max-w-[360px]"
                                 style={{ marginBottom: "10px" }}
                             >
-                                Discover premium furniture and luxury home decor crafted
-                                for elegant modern interiors and timeless living.
+                                Discover premium ceramic and marble decor handcrafted for elegant interiors, timeless beauty, and sophisticated modern living.
                             </motion.p>
                         </div>
 
@@ -319,11 +340,10 @@ export default function ProductsPage() {
                                     animate={{ opacity: 1, scale: 1 }}
                                     transition={{ duration: 0.4, delay: 0.85 + i * 0.05 }}
                                     onClick={() => handleCategory(cat)}
-                                    className={`h-9 md:h-10 rounded-[10px] border text-[13px] md:text-[14px] font-medium transition-all duration-200 ${
-                                        selectedCategory === cat
-                                            ? "bg-[#1a1a18] text-white border-[#1a1a18]"
-                                            : "bg-transparent text-[#4a4540] border-black/10 hover:bg-[#f7f4ef]"
-                                    }`}
+                                    className={`h-9 md:h-10 rounded-[10px] border text-[13px] md:text-[14px] font-medium transition-all duration-200 ${selectedCategory === cat
+                                        ? "bg-[#1a1a18] text-white border-[#1a1a18]"
+                                        : "bg-transparent text-[#4a4540] border-black/10 hover:bg-[#f7f4ef]"
+                                        }`}
                                     style={{ padding: "0 16px" }}
                                 >
                                     {cat}
@@ -437,11 +457,10 @@ export default function ProductsPage() {
                                             <button
                                                 key={page}
                                                 onClick={() => goToPage(page as number)}
-                                                className={`font-medium text-[14px] transition-all duration-200 ${
-                                                    currentPage === page
-                                                        ? "bg-[#1a1a18] text-white border border-[#1a1a18]"
-                                                        : "bg-white text-[#1a1a18] border border-black/10 hover:bg-[#f7f4ef] hover:border-black/20"
-                                                }`}
+                                                className={`font-medium text-[14px] transition-all duration-200 ${currentPage === page
+                                                    ? "bg-[#1a1a18] text-white border border-[#1a1a18]"
+                                                    : "bg-white text-[#1a1a18] border border-black/10 hover:bg-[#f7f4ef] hover:border-black/20"
+                                                    }`}
                                                 style={{
                                                     width: "44px",
                                                     height: "44px",

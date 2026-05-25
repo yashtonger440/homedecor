@@ -5,6 +5,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination, Autoplay } from "swiper/modules";
 import { motion } from "framer-motion";
 import { FiArrowUpRight } from "react-icons/fi";
+import { useRouter } from "next/navigation"
 
 import "swiper/css";
 import "swiper/css/pagination";
@@ -37,6 +38,7 @@ const collections = [
 ];
 
 export default function Collections() {
+  const router = useRouter();
   return (
     <section
       className="relative overflow-hidden bg-[#f8f5f0]"
@@ -214,6 +216,7 @@ export default function Collections() {
                         </p>
 
                         <button
+                          onClick={() => router.push("/collections")}
                           className="group/btn flex items-center gap-2 bg-white text-black rounded-full font-semibold hover:bg-[#c9a96e] hover:text-white transition-all duration-300"
                           style={{
                             padding: "10px 18px",

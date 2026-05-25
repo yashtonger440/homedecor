@@ -19,8 +19,8 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Home Decor",
-  description: "Luxury Home Decor Store",
+  title: "Nish Mee",
+  description: "Luxury Ceremic & Marble Decor",
 };
 
 export default function RootLayout({
