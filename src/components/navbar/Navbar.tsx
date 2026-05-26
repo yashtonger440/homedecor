@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-import { clearCartState } from "@/store/features/cartSlice"; 
+import { clearCartState } from "@/store/features/cartSlice";
 import { clearWishlistState } from "@/store/features/wishlistSlice";
 
 import {
@@ -33,7 +33,6 @@ const navLinks = [
 ];
 
 export default function Navbar() {
-
   const dispatch = useDispatch();
 
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -49,6 +48,15 @@ export default function Navbar() {
   const { currentUser } = useSelector(
     (state: RootState) => state.auth
   );
+
+  // hydration issue fixed
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   return (
     <>
@@ -68,8 +76,9 @@ export default function Navbar() {
                   src="/images/LOGO.png"
                   alt="NishMee logo icon"
                   fill
-                  className="object-contain"
                   priority
+                  sizes="(max-width: 768px) 120px, 160px"
+                  className="object-contain"
                 />
               </div>
 
@@ -132,8 +141,8 @@ export default function Navbar() {
               <FiSearch />
             </button>
 
-            {/* Auth Section */}
-            {
+            {/* AUTH SECTION */}
+            {mounted ? (
               currentUser ? (
 
                 <div className="hidden md:flex items-center gap-3">
@@ -141,7 +150,7 @@ export default function Navbar() {
                   {/* Profile */}
                   <Link
                     href="/profile"
-                    className="flex items-center gap-2 bg-black text-white"
+                    className="flex items-center gap-2 bg-black text-white hover:bg-[#c9a96e] transition"
                     style={{
                       height: "42px",
                       padding: "0 18px",
@@ -156,7 +165,11 @@ export default function Navbar() {
 
                   {/* Logout */}
                   <button
-                    onClick={() => dispatch(logout())}
+                    onClick={() => {
+                      dispatch(logout());
+                      dispatch(clearCartState());
+                      dispatch(clearWishlistState());
+                    }}
                     className="w-10 h-10 rounded-full border border-gray-300 hover:bg-black hover:text-white transition flex items-center justify-center"
                   >
                     <FiLogOut />
@@ -174,7 +187,9 @@ export default function Navbar() {
                 </Link>
 
               )
-            }
+            ) : (
+              <div className="hidden md:flex w-10 h-10" />
+            )}
 
             {/* Wishlist */}
             <Link
@@ -241,7 +256,7 @@ export default function Navbar() {
               ))}
 
               {/* Mobile Auth */}
-              {
+              {mounted && (
                 currentUser ? (
 
                   <button
@@ -271,7 +286,7 @@ export default function Navbar() {
                   </Link>
 
                 )
-              }
+              )}
 
             </nav>
 

@@ -41,9 +41,7 @@ export default function ProductCard({ product }: ProductProps) {
 
   const [added, setAdded] = useState(false);
 
-  // ─────────────────────────────
   // Wishlist State
-  // ─────────────────────────────
   const wishlistItems = useSelector(
     (state: RootState) => state.wishlist.wishlistItems
   );
@@ -52,9 +50,7 @@ export default function ProductCard({ product }: ProductProps) {
     (item:ProductProps["product"]) => item.id === product.id
   );
 
-  // ─────────────────────────────
   // Add To Cart
-  // ─────────────────────────────
   const handleAddToCart = () => {
     dispatch(
       addToCart({
@@ -73,9 +69,7 @@ export default function ProductCard({ product }: ProductProps) {
     }, 1800);
   };
 
-  // ─────────────────────────────
   // Wishlist Toggle
-  // ─────────────────────────────
   const handleWishlist = (
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
@@ -120,7 +114,7 @@ export default function ProductCard({ product }: ProductProps) {
           boxShadow: "0 2px 16px rgba(0,0,0,0.04)",
         }}
       >
-        {/* ───────────────── IMAGE ───────────────── */}
+        {/* IMAGE */}
         <Link
           href={`/products/${product.id}`}
           className="block relative overflow-hidden bg-[#f2ede6]"
