@@ -68,20 +68,11 @@ export default function Navbar() {
         <div className="container-custom flex h-[74px] sm:h-20 items-center justify-between">
 
           {/* LEFT */}
-          <div className="flex items-center gap-4 lg:gap-10">
-
-            {/* Mobile Menu Button */}
-            <button
-              className="flex lg:hidden items-center justify-center text-[22px] text-black transition hover:scale-110"
-              onClick={() => setMobileOpen((prev) => !prev)}
-              aria-label="Toggle Menu"
-            >
-              {mobileOpen ? <FiX /> : <FiMenu />}
-            </button>
+          <div className="flex items-center gap-8">
 
             {/* Logo */}
             <Link href="/">
-              <div className="flex flex-col items-center justify-center">
+              <div className="flex flex-col items-start justify-center">
 
                 <div className="relative h-10 w-20 sm:h-12 sm:w-24">
                   <Image
@@ -125,7 +116,7 @@ export default function Navbar() {
           <div className="flex items-center gap-3 sm:gap-4">
 
             {/* Search */}
-            <button className="hidden sm:flex text-[20px] text-black transition hover:scale-110">
+            <button className="flex items-center justify-center text-[19px] sm:text-[20px] text-black transition hover:scale-110">
               <FiSearch />
             </button>
 
@@ -174,7 +165,7 @@ export default function Navbar() {
             {/* Wishlist */}
             <Link
               href="/wishlist"
-              className="relative flex items-center justify-center text-[20px] text-black transition hover:scale-110"
+              className="relative flex items-center justify-center text-[19px] sm:text-[20px] text-black transition hover:scale-110"
             >
               <FiHeart />
 
@@ -186,7 +177,7 @@ export default function Navbar() {
             {/* Cart */}
             <Link
               href="/cart"
-              className="relative flex items-center justify-center text-[20px] text-black transition hover:scale-110"
+              className="relative flex items-center justify-center text-[19px] sm:text-[20px] text-black transition hover:scale-110"
             >
               <FiShoppingBag />
 
@@ -194,6 +185,15 @@ export default function Navbar() {
                 {cartItems.length}
               </span>
             </Link>
+
+            {/* Mobile Menu Button */}
+            <button
+              className="flex lg:hidden items-center justify-center text-[22px] text-black transition hover:scale-110"
+              onClick={() => setMobileOpen((prev) => !prev)}
+              aria-label="Toggle Menu"
+            >
+              {mobileOpen ? <FiX /> : <FiMenu />}
+            </button>
 
           </div>
         </div>
@@ -215,52 +215,41 @@ export default function Navbar() {
 
             {/* Sidebar */}
             <motion.div
-              initial={{ x: "-100%" }}
+              initial={{ x: "100%" }}
               animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
+              exit={{ x: "100%" }}
               transition={{ duration: 0.3 }}
-              className="fixed left-0 top-0 z-50 flex h-screen w-[82%] max-w-[340px] flex-col overflow-y-auto bg-white shadow-2xl lg:hidden"
+              className="fixed right-0 top-0 z-50 flex h-screen w-[82%] max-w-[340px] flex-col overflow-y-auto bg-white shadow-2xl lg:hidden"
             >
 
               {/* Top */}
-              <div className="flex items-center justify-between border-b border-gray-200 px-5 py-5">
-
-                <Link
-                  href="/"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  <div className="flex flex-col">
-
-                    <div className="relative h-10 w-20">
-                      <Image
-                        src="/images/LOGO.png"
-                        alt="NishMee Logo"
-                        fill
-                        className="object-contain"
-                      />
-                    </div>
-
-                    <div className="flex items-center leading-none">
-                      <span className="text-[9px] font-black uppercase tracking-[5px] text-[#111827]">
-                        nish
-                      </span>
-
-                      <span className="text-[9px] font-black uppercase tracking-[5px] text-[#c9a96e]">
-                        mee
-                      </span>
-                    </div>
-
-                  </div>
-                </Link>
+              <div className="flex items-center justify-end border-b border-gray-200 px-5 py-5">
 
                 <button
                   onClick={() => setMobileOpen(false)}
-                  className="text-[24px] text-black"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-[22px] text-black transition hover:bg-black hover:text-white"
                 >
                   <FiX />
                 </button>
 
               </div>
+
+              {/* Mobile Search */}
+              {/* <div className="border-b border-gray-200 px-5 py-5">
+
+                <div className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-[#f8f5f0] px-4 py-3">
+
+                  <FiSearch className="text-[18px] text-gray-500" />
+
+                  <input
+                    type="text"
+                    placeholder="Search products..."
+                    className="w-full bg-transparent text-[14px] text-black placeholder:text-gray-400 outline-none"
+                  />
+
+                </div>
+
+              </div> */}
 
               {/* Mobile User Info */}
               {currentUser ? (
@@ -285,7 +274,7 @@ export default function Navbar() {
 
                   </div>
 
-                  {/* Mobile Profile Button */}
+                  {/* Profile Button */}
                   <Link
                     href="/profile"
                     onClick={() => setMobileOpen(false)}
@@ -329,7 +318,7 @@ export default function Navbar() {
 
               </nav>
 
-              {/* Bottom Logout */}
+              {/* Logout */}
               {currentUser && (
 
                 <div className="border-t border-gray-200 p-5">
