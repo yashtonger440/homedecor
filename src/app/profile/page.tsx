@@ -165,9 +165,6 @@ export default function ProfilePage() {
                   <p className="text-[12px] text-gray-400 mt-0.5 truncate max-w-[180px] sm:max-w-xs">
                     {saved.email}
                   </p>
-                  <span className="mt-1.5 inline-flex items-center rounded-full border border-green-200 bg-green-50 px-3 py-0.5 text-[11px] font-medium text-green-700">
-                    Active Member
-                  </span>
                 </div>
               </div>
 

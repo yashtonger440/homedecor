@@ -29,35 +29,51 @@ export default function LoginPage() {
 
   const [password, setPassword] = useState("");
 
+  const [loading, setLoading] = useState(false);
+
   const handleLogin = () => {
+
+    if (!email || !password) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    setLoading(true);
+
     const users = JSON.parse(
       localStorage.getItem("users") || "[]"
     );
 
     const matchedUser = users.find(
       (user: any) =>
-        user.email === email &&
+        user.email.toLowerCase() === email.toLowerCase() &&
         user.password === password
     );
 
     if (matchedUser) {
+
+      /* REDUX LOGIN */
       dispatch(
-        login({
-          email,
-          password,
-        })
-      );
+  login(matchedUser)
+);
+
+      /* LOAD USER DATA */
+      dispatch(loadCart());
+      dispatch(loadWishlist());
 
       alert("Login Successful");
 
-      dispatch(loadCart());
+      /* FIX MOBILE ISSUE */
+      setTimeout(() => {
+        router.push("/");
+        router.refresh();
+      }, 300);
 
-      dispatch(loadWishlist());
-
-      router.push("/");
     } else {
       alert("Invalid Email or Password");
     }
+
+    setLoading(false);
   };
 
   return (
@@ -65,8 +81,9 @@ export default function LoginPage() {
       <Navbar />
 
       <section className="min-h-screen overflow-hidden bg-[#f8f5f0]">
+        
         <div className="mx-auto grid min-h-screen max-w-7xl grid-cols-1 items-center gap-10 px-4 pb-16 pt-[110px] sm:px-6 md:gap-14 lg:grid-cols-2 lg:gap-20 lg:px-8 lg:pb-20">
-          
+
           {/* LEFT SIDE */}
           <motion.div
             initial={{ opacity: 0, x: -40 }}
@@ -74,6 +91,7 @@ export default function LoginPage() {
             transition={{ duration: 0.6 }}
             className="text-center lg:text-left"
           >
+
             <p className="mb-4 text-[11px] font-semibold uppercase tracking-[4px] text-[#c9a96e] sm:mb-5 sm:text-[12px]">
               Welcome
             </p>
@@ -89,6 +107,7 @@ export default function LoginPage() {
               handcrafted collections, and luxury
               ceramic decor shopping experience.
             </p>
+
           </motion.div>
 
           {/* RIGHT SIDE */}
@@ -98,13 +117,15 @@ export default function LoginPage() {
             transition={{ duration: 0.6 }}
             className="relative overflow-hidden rounded-[28px] bg-white p-6 shadow-[0_15px_50px_rgba(0,0,0,0.06)] sm:rounded-[36px] sm:p-8 md:p-10"
           >
+
             {/* Glow */}
             <div className="absolute -right-16 -top-16 h-[180px] w-[180px] rounded-full bg-[#f3e4d1] opacity-40 blur-3xl" />
 
             <div className="relative z-10">
-              
+
               {/* Heading */}
               <div className="mb-8 sm:mb-10">
+
                 <h2 className="mb-2 text-[30px] font-black text-[#111827] sm:mb-3 sm:text-[38px]">
                   Sign In
                 </h2>
@@ -113,15 +134,18 @@ export default function LoginPage() {
                   Login to continue your luxury
                   shopping journey.
                 </p>
+
               </div>
 
               {/* Email */}
               <div className="mb-5">
+
                 <label className="mb-2.5 block text-[13px] font-semibold text-[#111827] sm:text-[14px]">
                   Email Address
                 </label>
 
                 <div className="flex h-[56px] items-center gap-3 rounded-[16px] border border-transparent bg-[#f8f5f0] px-4 transition focus-within:border-black sm:h-[60px] sm:rounded-[18px] sm:px-5">
+
                   <FiMail className="shrink-0 text-[18px] text-gray-400" />
 
                   <input
@@ -133,16 +157,20 @@ export default function LoginPage() {
                       setEmail(e.target.value)
                     }
                   />
+
                 </div>
+
               </div>
 
               {/* Password */}
               <div className="mb-4">
+
                 <label className="mb-2.5 block text-[13px] font-semibold text-[#111827] sm:text-[14px]">
                   Password
                 </label>
 
                 <div className="flex h-[56px] items-center gap-3 rounded-[16px] border border-transparent bg-[#f8f5f0] px-4 transition focus-within:border-black sm:h-[60px] sm:rounded-[18px] sm:px-5">
+
                   <FiLock className="shrink-0 text-[18px] text-gray-400" />
 
                   <input
@@ -153,15 +181,24 @@ export default function LoginPage() {
                     onChange={(e) =>
                       setPassword(e.target.value)
                     }
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleLogin();
+                      }
+                    }}
                   />
+
                 </div>
+
               </div>
 
               {/* Forgot Password */}
               <div className="mb-7 flex justify-end sm:mb-8">
+
                 <button className="text-[13px] font-medium text-gray-500 transition hover:text-black sm:text-sm">
                   Forgot Password?
                 </button>
+
               </div>
 
               {/* Login Button */}
@@ -169,29 +206,46 @@ export default function LoginPage() {
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleLogin}
-                className="mb-6 flex h-[56px] w-full items-center justify-center gap-3 rounded-full bg-black text-[14px] font-semibold text-white transition-all duration-300 hover:bg-[#1f1f1f] sm:mb-7 sm:h-[60px] sm:text-[15px]"
+                disabled={loading}
+                className="mb-6 flex h-[56px] w-full items-center justify-center gap-3 rounded-full bg-black text-[14px] font-semibold text-white transition-all duration-300 hover:bg-[#1f1f1f] disabled:cursor-not-allowed disabled:opacity-70 sm:mb-7 sm:h-[60px] sm:text-[15px]"
               >
-                Login
-                <FiArrowRight />
+
+                {
+                  loading
+                    ? "Logging in..."
+                    : (
+                      <>
+                        Login
+                        <FiArrowRight />
+                      </>
+                    )
+                }
+
               </motion.button>
 
               {/* Bottom */}
               <div className="text-center">
+
                 <p className="text-[14px] text-gray-500 sm:text-[15px]">
                   Don’t have an account?{" "}
-                  
+
                   <Link
                     href="/signup"
                     className="font-semibold text-black transition hover:text-[#c9a96e]"
                   >
                     Create Account
                   </Link>
+
                 </p>
+
               </div>
 
             </div>
+
           </motion.div>
+
         </div>
+
       </section>
 
       <Footer />

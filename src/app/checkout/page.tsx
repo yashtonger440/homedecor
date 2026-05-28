@@ -141,7 +141,7 @@ export default function CheckoutPage() {
     ])
   );
 
-  localStorage.removeItem("cartItems");
+  dispatch(clearCart());
 
   alert("Order Placed Successfully");
 
