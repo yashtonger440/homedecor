@@ -75,78 +75,89 @@ export default function CheckoutPage() {
     });
   };
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
+    if (
+      !formData.fullName ||
+      !formData.email ||
+      !formData.phone ||
+      !formData.address
+    ) {
+      alert("Please fill all required fields");
+      return;
+    }
 
-  if (
-    !formData.fullName ||
-    !formData.email ||
-    !formData.phone ||
-    !formData.address
-  ) {
-    alert("Please fill all required fields");
-    return;
-  }
+    try {
+      const orderData = {
+        orderId: `NSH-${Date.now()}`,
 
-  const currentUser = JSON.parse(
-    localStorage.getItem("currentUser") || "{}"
-  );
+        userEmail: currentUser?.email,
 
-  const existingOrders = JSON.parse(
-    localStorage.getItem("orders") || "[]"
-  );
+        estimatedDelivery: "3 - 5 Business Days",
 
-  const newOrder = {
-    orderId: `NSH-${Date.now()}`,
-    userEmail: currentUser.email,
+        subtotal,
+        shipping,
+        discount,
+        totalAmount: total,
 
-    date: new Date().toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    }),
+        status: "Processing",
 
-    estimatedDelivery: "3 - 5 Business Days",
+        shippingAddress: `
+        ${formData.fullName},
+        ${formData.address},
+        ${formData.city},
+        ${formData.state},
+        ${formData.zip}
+      `,
 
-    subtotal,
-    shipping,
-    discount,
+        items: cartItems.map((item) => ({
+          id: item.id,
+          title: item.title,
+          image: item.image,
+          price: item.price,
+          quantity: item.quantity,
+          totalPrice: item.price * item.quantity,
+        })),
+      };
 
-    totalAmount: total,
+      const response = await fetch(
+        "/api/orders/create",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify(orderData),
+        }
+      );
 
-    status: "Processing",
+      const data =
+        await response.json();
 
-    shippingAddress: `
-      ${formData.fullName},
-      ${formData.address},
-      ${formData.city},
-      ${formData.state},
-      ${formData.zip}
-    `,
+      if (!data.success) {
+        alert(
+          data.message ||
+          "Order creation failed"
+        );
+        return;
+      }
 
-    items: cartItems.map((item) => ({
-      id: item.id,
-      title: item.title,
-      image: item.image,
-      price: item.price,
-      quantity: item.quantity,
-      totalPrice: item.price * item.quantity,
-    })),
+      dispatch(clearCart());
+
+      alert(
+        "Order Placed Successfully"
+      );
+
+      window.location.href =
+        "/success";
+    } catch (error) {
+      console.error(error);
+
+      alert(
+        "Something went wrong"
+      );
+    }
   };
-
-  localStorage.setItem(
-    "orders",
-    JSON.stringify([
-      ...existingOrders,
-      newOrder,
-    ])
-  );
-
-  dispatch(clearCart());
-
-  alert("Order Placed Successfully");
-
-  window.location.href = "/success";
-};
 
   return (
     <>
@@ -180,19 +191,17 @@ export default function CheckoutPage() {
                 >
 
                   <div
-                    className={`flex items-center gap-1.5 ${
-                      i <= 1
+                    className={`flex items-center gap-1.5 ${i <= 1
                         ? "text-black"
                         : "text-[#c4b8a8]"
-                    }`}
+                      }`}
                   >
 
                     <div
-                      className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
-                        i <= 1
+                      className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${i <= 1
                           ? "bg-black text-white"
                           : "bg-[#e8e0d4] text-[#a89880]"
-                      }`}
+                        }`}
                     >
 
                       {
@@ -499,11 +508,10 @@ export default function CheckoutPage() {
                       </p>
 
                       <p
-                        className={`text-[12px] ${
-                          shipping === 0
+                        className={`text-[12px] ${shipping === 0
                             ? "text-emerald-600"
                             : "text-[#c4b8a8]"
-                        }`}
+                          }`}
                       >
                         {
                           shipping === 0
@@ -515,11 +523,10 @@ export default function CheckoutPage() {
                     </div>
 
                     <span
-                      className={`font-bold ${
-                        shipping === 0
+                      className={`font-bold ${shipping === 0
                           ? "text-emerald-600"
                           : "text-[#111827]"
-                      }`}
+                        }`}
                     >
                       {
                         shipping === 0

@@ -33,9 +33,6 @@ import { RootState } from "@/store/store";
 import { addToCart } from "@/store/features/cartSlice";
 import { addToWishlist, removeFromWishlist } from "@/store/features/wishlistSlice";
 
-import { products as staticProducts } from "@/data/products";
-import { getProducts } from "@/utils/productStorage"; // ✅ IndexedDB
-
 import Navbar from "@/components/navbar/Navbar";
 import Footer from "@/components/footer/Footer";
 import ProductCard from "@/components/products/ProductCard";
@@ -50,16 +47,32 @@ export default function ProductDetails() {
 
   const [allProducts, setAllProducts] = useState<any[]>([]);
 
-  // ✅ FIXED: localStorage hataya, IndexedDB se load
   useEffect(() => {
-    getProducts().then((data) => {
-      setAllProducts(data && data.length > 0 ? data : staticProducts);
-    });
+    const loadProducts = async () => {
+      try {
+        const res = await fetch("/api/products", {
+          cache: "no-store",
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          setAllProducts(data.products);
+        } else {
+          setAllProducts([]);
+        }
+      } catch (err) {
+        console.error(err);
+        setAllProducts([]);
+      }
+    };
+
+    loadProducts();
   }, []);
 
   const product = useMemo(() => {
     return allProducts.find(
-      (item: any) => item.id === Number(params?.id)
+      (item: any) => item._id === Number(params?.id)
     );
   }, [allProducts, params]);
 
@@ -103,19 +116,20 @@ export default function ProductDetails() {
   const isInStock = product.inStock !== false;
 
   const isWished = wishlistItems.some(
-    (item: any) => item.id === product.id
+    (item: any) => item._id === product._id
   );
 
   const relatedProducts = allProducts.filter(
     (item: any) =>
-      item.category === product.category && item.id !== product.id
+      item.category === product.category &&
+      item._id !== product._id
   );
 
   const discount =
     product.oldPrice && product.oldPrice > product.price
       ? Math.round(
-          ((product.oldPrice - product.price) / product.oldPrice) * 100
-        )
+        ((product.oldPrice - product.price) / product.oldPrice) * 100
+      )
       : 0;
 
   const handleAddToCart = () => {
@@ -253,9 +267,8 @@ export default function ProductDetails() {
                       src={mainImage || product.image}
                       alt={product.title}
                       fill
-                      className={`object-cover group-hover:scale-105 transition duration-500 ${
-                        !isInStock ? "grayscale opacity-70" : ""
-                      }`}
+                      className={`object-cover group-hover:scale-105 transition duration-500 ${!isInStock ? "grayscale opacity-70" : ""
+                        }`}
                     />
                   </motion.div>
                 </AnimatePresence>
@@ -269,16 +282,14 @@ export default function ProductDetails() {
                 <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
                   <button
                     onClick={handleWishlist}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all duration-300 ${
-                      isWished
+                    className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all duration-300 ${isWished
                         ? "bg-black text-white scale-110"
                         : "bg-white text-gray-600 hover:bg-black hover:text-white"
-                    }`}
+                      }`}
                   >
                     <FiHeart
-                      className={`text-sm transition-all duration-300 ${
-                        isWished ? "fill-white" : ""
-                      }`}
+                      className={`text-sm transition-all duration-300 ${isWished ? "fill-white" : ""
+                        }`}
                     />
                   </button>
 
@@ -305,11 +316,10 @@ export default function ProductDetails() {
                       setMainImage(img);
                       setActiveImageIndex(index);
                     }}
-                    className={`relative overflow-hidden rounded-2xl border-2 bg-white transition-all duration-200 h-[80px] sm:h-[95px] p-1 ${
-                      mainImage === img
+                    className={`relative overflow-hidden rounded-2xl border-2 bg-white transition-all duration-200 h-[80px] sm:h-[95px] p-1 ${mainImage === img
                         ? "border-black scale-[0.97]"
                         : "border-transparent hover:border-gray-300"
-                    }`}
+                      }`}
                   >
                     <div className="relative w-full h-full rounded-xl overflow-hidden">
                       <Image
@@ -348,13 +358,12 @@ export default function ProductDetails() {
                     {Array.from({ length: 5 }).map((_, i) => (
                       <FiStar
                         key={i}
-                        className={`text-[14px] transition-colors ${
-                          i < fullStars
+                        className={`text-[14px] transition-colors ${i < fullStars
                             ? "fill-[#c9a96e] text-[#c9a96e]"
                             : i === fullStars && hasHalf
-                            ? "fill-[#c9a96e]/50 text-[#c9a96e]"
-                            : "text-[#d1d5db]"
-                        }`}
+                              ? "fill-[#c9a96e]/50 text-[#c9a96e]"
+                              : "text-[#d1d5db]"
+                          }`}
                       />
                     ))}
                   </div>
@@ -427,11 +436,10 @@ export default function ProductDetails() {
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
-                      className={`capitalize text-[13px] font-semibold rounded-[10px] transition-all duration-200 px-4 py-2 ${
-                        activeTab === tab
+                      className={`capitalize text-[13px] font-semibold rounded-[10px] transition-all duration-200 px-4 py-2 ${activeTab === tab
                           ? "bg-black text-white"
                           : "text-gray-500 hover:text-black"
-                      }`}
+                        }`}
                     >
                       {tab}
                     </button>
@@ -470,9 +478,8 @@ export default function ProductDetails() {
 
               <div className="flex items-center gap-4 flex-wrap mb-5">
                 <div
-                  className={`flex items-center gap-3 bg-white rounded-full px-2 py-1.5 ${
-                    !isInStock ? "opacity-40 pointer-events-none" : ""
-                  }`}
+                  className={`flex items-center gap-3 bg-white rounded-full px-2 py-1.5 ${!isInStock ? "opacity-40 pointer-events-none" : ""
+                    }`}
                 >
                   <button
                     onClick={() => quantity > 1 && setQuantity(quantity - 1)}
@@ -495,13 +502,12 @@ export default function ProductDetails() {
                   whileTap={isInStock ? { scale: 0.97 } : {}}
                   onClick={handleAddToCart}
                   disabled={!isInStock}
-                  className={`flex-1 h-[54px] min-w-[190px] rounded-full font-bold text-[15px] flex items-center justify-center gap-3 transition-all duration-300 ${
-                    !isInStock
+                  className={`flex-1 h-[54px] min-w-[190px] rounded-full font-bold text-[15px] flex items-center justify-center gap-3 transition-all duration-300 ${!isInStock
                       ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                       : added
-                      ? "bg-emerald-600 text-white"
-                      : "bg-black text-white hover:bg-[#1f1f1f]"
-                  }`}
+                        ? "bg-emerald-600 text-white"
+                        : "bg-black text-white hover:bg-[#1f1f1f]"
+                    }`}
                 >
                   {!isInStock ? (
                     <><FiXCircle /> Out of Stock</>
@@ -514,11 +520,10 @@ export default function ProductDetails() {
 
                 <button
                   disabled={!isInStock}
-                  className={`h-[54px] rounded-full font-bold text-[15px] transition-all duration-300 px-7 w-full sm:w-auto ${
-                    !isInStock
+                  className={`h-[54px] rounded-full font-bold text-[15px] transition-all duration-300 px-7 w-full sm:w-auto ${!isInStock
                       ? "border-2 border-gray-200 text-gray-400 cursor-not-allowed bg-white"
                       : "border-2 border-black hover:bg-black hover:text-white"
-                  }`}
+                    }`}
                 >
                   Buy Now
                 </button>
@@ -565,7 +570,7 @@ export default function ProductDetails() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {relatedProducts.slice(0, 4).map((item: any) => (
-                  <ProductCard key={item.id} product={item} />
+                  <ProductCard key={item._id || item.id} product={item} />
                 ))}
               </div>
             </div>
@@ -603,15 +608,15 @@ export default function ProductDetails() {
               </button>
 
               <motion.div
-                key={product.gallery[activeImageIndex]}
+                key={product?.gallery?.[activeImageIndex]}
                 initial={{ opacity: 0, scale: 0.96 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
                 className="relative w-full max-w-6xl h-[70vh] sm:h-[80vh]"
               >
                 <Image
-                  src={product.gallery[activeImageIndex]}
-                  alt={product.title}
+                  src={product?.gallery?.[activeImageIndex]}
+                  alt={product?.title}
                   fill
                   className="object-contain"
                 />
@@ -619,18 +624,17 @@ export default function ProductDetails() {
 
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-full max-w-4xl px-4 overflow-x-auto scrollbar-hide">
                 <div className="flex items-center gap-3 w-max mx-auto">
-                  {(product.gallery || []).map((img: string, index: number) => (
+                  {(product?.gallery || []).map((img: string, index: number) => (
                     <button
                       key={index}
                       onClick={() => {
                         setActiveImageIndex(index);
                         setMainImage(img);
                       }}
-                      className={`relative shrink-0 w-20 h-20 sm:w-24 sm:h-24 overflow-hidden rounded-2xl border-2 transition-all duration-300 ${
-                        activeImageIndex === index
+                      className={`relative shrink-0 w-20 h-20 sm:w-24 sm:h-24 overflow-hidden rounded-2xl border-2 transition-all duration-300 ${activeImageIndex === index
                           ? "border-white scale-95"
                           : "border-transparent opacity-60 hover:opacity-100"
-                      }`}
+                        }`}
                     >
                       <Image src={img} alt="" fill className="object-cover" />
                     </button>

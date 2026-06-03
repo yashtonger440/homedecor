@@ -105,10 +105,8 @@ export default function ProductsPage() {
           ? "Buddha & Monk"
           : categoryFromURL === "luxury-sculptures"
           ? "Luxury Sculptures"
-          : categoryFromURL === "krishna"
-          ? "Krishna Collection"
-          : categoryFromURL === "ganesh"
-          ? "Ganesh Collection"
+          : categoryFromURL === "divine"
+          ? "Divine Collection"
           : "All";
       setSelectedCategory(formattedCategory);
     }
@@ -120,8 +118,7 @@ export default function ProductsPage() {
     "Showpieces",
     "Luxury Sculptures",
     "Handcraft Idols",
-    "Ganesh Collection",
-    "Krishna Collection",
+    "Divine Collection",
     "Buddha & Monk",
     "Mugs",
     "Printed Plates",

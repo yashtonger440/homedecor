@@ -26,7 +26,7 @@ const categories = [
   },
   {
     id: 4,
-    title: "Ganesh Collection",
+    title: "Divine Collection",
     image: "/images/ganesh/ganesh1.jpeg",
     slug: "ganesh",
   },

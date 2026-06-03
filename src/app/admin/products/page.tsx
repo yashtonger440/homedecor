@@ -7,12 +7,6 @@ import Link from "next/link";
 
 import { useDispatch } from "react-redux";
 
-import { addProduct } from "@/store/features/productSlice";
-
-import {
-  getProducts,
-  saveProducts,
-} from "@/utils/productStorage";
 
 import {
   FiTrash2,
@@ -30,12 +24,11 @@ import {
 } from "react-icons/fi";
 
 export default function AdminProductsPage() {
-  const dispatch = useDispatch();
 
   const [products, setProducts] = useState<any[]>([]);
   const [openModal, setOpenModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [price, setPrice] = useState("");
@@ -51,10 +44,19 @@ export default function AdminProductsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
 
-  // ✅ FIXED: async getProducts
   useEffect(() => {
-    getProducts().then((data) => setProducts(data));
+    fetchProducts();
   }, []);
+
+  const fetchProducts = async () => {
+    const res = await fetch("/api/products");
+
+    const data = await res.json();
+
+    if (data.success) {
+      setProducts(data.products);
+    }
+  };
 
   // All unique categories from products
   const allCategories = useMemo(() => {
@@ -93,20 +95,45 @@ export default function AdminProductsPage() {
   };
 
   // ✅ FIXED: async handleDelete
-  const handleDelete = async (id: number) => {
-    const updatedProducts = products.filter((item) => item.id !== id);
-    setProducts(updatedProducts);
-    await saveProducts(updatedProducts);
+  const handleDelete = async (id: string) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this product?"
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(
+        `/api/products/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.message);
+      }
+
+      await fetchProducts();
+
+      alert("Product deleted successfully");
+    } catch (error) {
+      console.error(error);
+
+      alert("Failed to delete product");
+    }
   };
 
   const handleEdit = (item: any) => {
     setOpenModal(true);
     setIsEditing(true);
-    setEditingId(item.id);
+    setEditingId(item._id);
     setTitle(item.title);
     setCategory(item.category);
-    setPrice(item.price);
-    setOldPrice(item.oldPrice);
+    setPrice(String(item.price || ""));
+    setOldPrice(String(item.oldPrice || ""));
     setDescription(item.description);
     setRating(item.rating || 5);
     setInStock(item.inStock !== false);
@@ -120,32 +147,68 @@ export default function AdminProductsPage() {
     ]);
   };
 
-  const handleImageUpload = (
+  const handleImageUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     index: number
   ) => {
     const file = e.target.files?.[0];
+
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const base64 = event.target?.result as string;
-      const updatedImages = [...images];
-      updatedImages[index] = base64;
-      setImages(updatedImages);
-    };
-    reader.readAsDataURL(file);
+    try {
+      const reader = new FileReader();
+
+      reader.onload = async (event) => {
+        const base64 = event.target?.result as string;
+
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            image: base64,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (!data.success) {
+          throw new Error("Upload failed");
+        }
+
+        const updatedImages = [...images];
+
+        updatedImages[index] = data.url;
+
+        setImages(updatedImages);
+      };
+
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error(error);
+
+      alert("Image upload failed");
+    }
   };
 
   // ✅ FIXED: async handleAddOrUpdateProduct
   const handleAddOrUpdateProduct = async () => {
-    if (!title || !category || !price || !images[0] || !images[1] || !images[2]) {
-      alert("Please fill all required fields & upload minimum 3 images");
+    if (
+      !title ||
+      !category ||
+      !price ||
+      !images[0] ||
+      !images[1] ||
+      !images[2]
+    ) {
+      alert(
+        "Please fill all required fields & upload minimum 3 images"
+      );
       return;
     }
 
     const productData = {
-      id: editingId || Date.now(),
       title,
       category,
       price: Number(price),
@@ -159,21 +222,42 @@ export default function AdminProductsPage() {
       height,
     };
 
-    let updatedProducts = [];
+    try {
+      const url = isEditing
+        ? `/api/products/${editingId}`
+        : "/api/products";
 
-    if (isEditing) {
-      updatedProducts = products.map((item) =>
-        item.id === editingId ? productData : item
+      const method = isEditing ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(productData),
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error("Failed to save product");
+      }
+
+      await fetchProducts();
+
+      resetForm();
+
+      setOpenModal(false);
+
+      alert(
+        isEditing
+          ? "Product updated successfully"
+          : "Product added successfully"
       );
-    } else {
-      dispatch(addProduct(productData));
-      updatedProducts = [...products, productData];
+    } catch (error) {
+      console.error(error);
+      alert("Failed to add product");
     }
-
-    setProducts(updatedProducts);
-    await saveProducts(updatedProducts); // ✅ FIXED: await lagaya
-    resetForm();
-    setOpenModal(false);
   };
 
   const totalProducts = products.length;
@@ -276,11 +360,10 @@ export default function AdminProductsPage() {
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className={`rounded-full px-4 py-2 text-[12px] font-semibold transition-all duration-200 ${
-                    activeCategory === cat
-                      ? "bg-[#111827] text-white"
-                      : "bg-[#f3f4f6] text-[#6b7280] hover:bg-[#e5e7eb] hover:text-[#111827]"
-                  }`}
+                  className={`rounded-full px-4 py-2 text-[12px] font-semibold transition-all duration-200 ${activeCategory === cat
+                    ? "bg-[#111827] text-white"
+                    : "bg-[#f3f4f6] text-[#6b7280] hover:bg-[#e5e7eb] hover:text-[#111827]"
+                    }`}
                 >
                   {cat}
                 </button>
@@ -309,7 +392,7 @@ export default function AdminProductsPage() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {filteredProducts.map((item) => (
               <div
-                key={item.id}
+                key={item._id}
                 className="group relative flex flex-col overflow-hidden rounded-[20px] border border-[#eef0f3] bg-white transition-all duration-300 hover:-translate-y-[3px] hover:shadow-[0_12px_30px_rgba(0,0,0,0.08)]"
               >
                 {/* EDIT BUTTON */}
@@ -341,9 +424,8 @@ export default function AdminProductsPage() {
                     src={item.image}
                     alt={item.title}
                     fill
-                    className={`object-cover transition-transform duration-700 group-hover:scale-105 ${
-                      item.inStock === false ? "opacity-60 grayscale" : ""
-                    }`}
+                    className={`object-cover transition-transform duration-700 group-hover:scale-105 ${item.inStock === false ? "opacity-60 grayscale" : ""
+                      }`}
                   />
                 </div>
 
@@ -364,11 +446,10 @@ export default function AdminProductsPage() {
                         {Array.from({ length: 5 }).map((_, i) => (
                           <FiStar
                             key={i}
-                            className={`text-[12px] ${
-                              i < item.rating
-                                ? "fill-[#f59e0b] text-[#f59e0b]"
-                                : "text-[#d1d5db]"
-                            }`}
+                            className={`text-[12px] ${i < item.rating
+                              ? "fill-[#f59e0b] text-[#f59e0b]"
+                              : "text-[#d1d5db]"
+                              }`}
                           />
                         ))}
                       </div>
@@ -405,7 +486,7 @@ export default function AdminProductsPage() {
                   {/* ACTIONS */}
                   <div className="mt-4 flex gap-2">
                     <Link
-                      href={`/products/${item.id}`}
+                      href={`/products/${item._id}`}
                       className="group/view relative flex h-[40px] flex-1 items-center justify-center overflow-hidden rounded-full border border-[#dbe1ea] bg-[#fafafa] px-4 text-[12px] font-bold text-[#111827] transition-all duration-300 hover:-translate-y-[1px] hover:border-[#111827]"
                     >
                       <span className="absolute inset-0 translate-y-full bg-[#111827] transition-transform duration-300 group-hover/view:translate-y-0" />
@@ -416,7 +497,7 @@ export default function AdminProductsPage() {
                     </Link>
 
                     <button
-                      onClick={() => handleDelete(item.id)}
+                      onClick={() => handleDelete(item._id)}
                       className="flex h-[40px] items-center justify-center gap-1.5 rounded-full bg-red-500 px-4 text-[12px] font-semibold text-white transition-all duration-300 hover:bg-red-600"
                     >
                       <FiTrash2 className="text-[13px]" />
@@ -508,11 +589,10 @@ export default function AdminProductsPage() {
                   <button
                     type="button"
                     onClick={() => setInStock(true)}
-                    className={`flex h-[56px] items-center justify-center gap-2.5 rounded-2xl border text-[14px] font-semibold transition-all duration-200 ${
-                      inStock
-                        ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-                        : "border-[#e5e7eb] bg-[#fafafa] text-[#6b7280] hover:border-emerald-300 hover:bg-emerald-50/50"
-                    }`}
+                    className={`flex h-[56px] items-center justify-center gap-2.5 rounded-2xl border text-[14px] font-semibold transition-all duration-200 ${inStock
+                      ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                      : "border-[#e5e7eb] bg-[#fafafa] text-[#6b7280] hover:border-emerald-300 hover:bg-emerald-50/50"
+                      }`}
                   >
                     <FiCheckCircle className={`text-[18px] ${inStock ? "text-emerald-500" : "text-[#9ca3af]"}`} />
                     In Stock
@@ -521,11 +601,10 @@ export default function AdminProductsPage() {
                   <button
                     type="button"
                     onClick={() => setInStock(false)}
-                    className={`flex h-[56px] items-center justify-center gap-2.5 rounded-2xl border text-[14px] font-semibold transition-all duration-200 ${
-                      !inStock
-                        ? "border-red-400 bg-red-50 text-red-600"
-                        : "border-[#e5e7eb] bg-[#fafafa] text-[#6b7280] hover:border-red-300 hover:bg-red-50/50"
-                    }`}
+                    className={`flex h-[56px] items-center justify-center gap-2.5 rounded-2xl border text-[14px] font-semibold transition-all duration-200 ${!inStock
+                      ? "border-red-400 bg-red-50 text-red-600"
+                      : "border-[#e5e7eb] bg-[#fafafa] text-[#6b7280] hover:border-red-300 hover:bg-red-50/50"
+                      }`}
                   >
                     <FiXCircle className={`text-[18px] ${!inStock ? "text-red-400" : "text-[#9ca3af]"}`} />
                     Out of Stock
