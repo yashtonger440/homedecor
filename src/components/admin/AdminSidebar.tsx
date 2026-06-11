@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -16,8 +17,6 @@ const BASE_LINKS = [
   { name: "Categories", href: "/admin/categories", icon: FiTag         },
 ];
 
-const LOW_STOCK_THRESHOLD = 5;
-
 export default function AdminSidebar() {
   const pathname = usePathname() ?? "";
   const router = useRouter();
@@ -31,18 +30,6 @@ export default function AdminSidebar() {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [mobileOpen]);
-
-  useEffect(() => {
-    fetch("/api/products", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((data) => {
-        const low = (data.products || []).filter(
-          (p: any) => typeof p.stock === "number" && p.stock >= 0 && p.stock <= LOW_STOCK_THRESHOLD
-        ).length;
-        setLowStockCount(low);
-      })
-      .catch(() => {});
-  }, []);
 
   const links = BASE_LINKS.map((l) =>
     l.name === "Products" && lowStockCount > 0
@@ -131,8 +118,29 @@ export default function AdminSidebar() {
       >
         <div className="flex items-center justify-between px-6 py-5 border-b border-[#f3f4f6]">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[4px] text-[#c9a96e]">NishMee</p>
-            <h1 className="text-[28px] font-black text-[#111827] leading-none">Admin</h1>
+            <Link href="/admin">
+              <div className="flex flex-col items-start justify-center">
+                <div className="relative h-10 w-20 sm:h-12 sm:w-24">
+                  <Image
+                    src="/images/LOGO.png"
+                    alt="NishMee Logo"
+                    fill
+                    priority
+                    className="object-contain"
+                  />
+                </div>
+
+                <div className="flex items-center leading-none">
+                  <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[5px] text-[#111827]">
+                    nish
+                  </span>
+
+                  <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[5px] text-[#c9a96e]">
+                    mee
+                  </span>
+                </div>
+              </div>
+            </Link>
           </div>
           <button
             onClick={() => setMobileOpen(false)}
@@ -153,8 +161,29 @@ export default function AdminSidebar() {
       {/* ── Desktop sidebar ── */}
       <div className="hidden md:flex md:flex-col w-[240px] min-h-screen flex-shrink-0 sticky top-0 h-screen bg-white border-r border-[#eeeeee] z-30">
         <div className="px-6 pt-8 pb-7 border-b border-[#f3f4f6]">
-          <p className="mb-1 text-[10px] font-bold uppercase tracking-[4px] text-[#c9a96e]">NishMee</p>
-          <h1 className="text-[30px] font-black text-[#111827] leading-none">Admin</h1>
+          <Link href="/admin">
+              <div className="flex flex-col items-start justify-center">
+                <div className="relative h-10 w-20 sm:h-12 sm:w-24">
+                  <Image
+                    src="/images/LOGO.png"
+                    alt="NishMee Logo"
+                    fill
+                    priority
+                    className="object-contain"
+                  />
+                </div>
+
+                <div className="flex items-center leading-none">
+                  <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[5px] text-[#111827]">
+                    nish
+                  </span>
+
+                  <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[5px] text-[#c9a96e]">
+                    mee
+                  </span>
+                </div>
+              </div>
+            </Link>
         </div>
         <p className="px-7 pt-5 pb-1 text-[9px] font-bold uppercase tracking-[3px] text-[#d1d5db]">Menu</p>
         <div className="flex-1">
