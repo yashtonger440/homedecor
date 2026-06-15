@@ -111,8 +111,8 @@ export default function Footer() {
         <div className="pt-7 flex flex-col md:flex-row items-center justify-between gap-4 text-gray-500 text-sm sm:text-base">
           <p className="text-center md:text-left">© 2026 NISHMEE. All Rights Reserved.</p>
           <div className="flex flex-wrap items-center justify-center gap-5">
-            <Link href="/" className="hover:text-white transition duration-300">Privacy Policy</Link>
-            <Link href="/" className="hover:text-white transition duration-300">Terms & Conditions</Link>
+            <Link href="/privacy-policy" className="hover:text-white transition duration-300">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-white transition duration-300">Terms & Conditions</Link>
           </div>
         </div>
       </div>
