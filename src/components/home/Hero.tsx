@@ -9,8 +9,7 @@ export default function Hero() {
     <section
       className="relative overflow-hidden bg-cover bg-center bg-no-repeat min-h-screen flex items-center"
       style={{
-        backgroundImage:
-          "url('https://plus.unsplash.com/premium_photo-1681412205156-bb506a4ea970?q=80&w=1400&auto=format&fit=crop')",
+        backgroundImage: "url('/images/hero-bg.jpeg')",
       }}
     >
       {/* Dark Overlay */}
@@ -79,7 +78,7 @@ export default function Hero() {
             {/* Stats */}
             <div className="mt-10 flex flex-wrap items-center justify-center lg:justify-start gap-8">
               {[
-                { number: "50+", label: "Curated Products" },
+                { number: "Trusted", label: "Craftsmanship" },
                 { number: "Spiritual", label: "Collection" },
                 { number: "Premium", label: "Decor Pieces" },
               ].map((item, index) => (

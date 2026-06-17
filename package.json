@@ -24,6 +24,7 @@
     "mongodb": "^7.2.0",
     "mongoose": "^9.6.3",
     "next": "16.2.6",
+    "razorpay": "^2.9.6",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hot-toast": "^2.6.0",
@@ -32,6 +33,7 @@
     "react-redux": "^9.3.0",
     "recharts": "^3.8.1",
     "redux-persist": "^6.0.0",
+    "resend": "^6.12.4",
     "swiper": "^12.1.4"
   },
   "devDependencies": {

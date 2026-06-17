@@ -18,9 +18,10 @@ import {
 } from "react-icons/fi";
 
 import { RootState } from "@/store/store";
-import { logout } from "@/store/features/authSlice";
+import { logout, updateProfile } from "@/store/features/authSlice";
 import { clearCartState } from "@/store/features/cartSlice";
 import { clearWishlistState } from "@/store/features/wishlistSlice";
+
 
 import Navbar from "@/components/navbar/Navbar";
 import Footer from "@/components/footer/Footer";
@@ -29,7 +30,6 @@ interface ProfileForm {
   name: string;
   email: string;
   phone: string;
-  dob: string;
 }
 
 export default function ProfilePage() {
@@ -45,14 +45,12 @@ export default function ProfilePage() {
     name: currentUser?.name || "",
     email: currentUser?.email || "",
     phone: currentUser?.phone || "",
-    dob: currentUser?.dob || "",
   });
 
   const [saved, setSaved] = useState<ProfileForm>({
     name: currentUser?.name || "",
     email: currentUser?.email || "",
     phone: currentUser?.phone || "",
-    dob: currentUser?.dob || "",
   });
 
   const handleLogout = () => {
@@ -63,12 +61,42 @@ export default function ProfilePage() {
   };
 
   const handleSave = async () => {
+    if (!currentUser) return;
+
     setSaving(true);
-    // TODO: dispatch update action / API call here
-    await new Promise((r) => setTimeout(r, 600)); // simulate save
-    setSaved(form);
-    setSaving(false);
-    setIsEditing(false);
+    try {
+      const res = await fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: currentUser.email,
+          newEmail: form.email,
+          name: form.name,
+          phone: form.phone,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        alert(data.message || "Failed to save");
+        return;
+      }
+
+      // Redux + localStorage update
+      dispatch(updateProfile({
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+      }));
+
+      setSaved(form);
+      setIsEditing(false);
+    } catch (error) {
+      alert("Something went wrong");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCancel = () => {
@@ -132,13 +160,6 @@ export default function ProfilePage() {
       icon: FiPhone,
       type: "tel",
       placeholder: "Enter your mobile number",
-    },
-    {
-      key: "dob" as keyof ProfileForm,
-      label: "Date of Birth",
-      icon: FiCalendar,
-      type: "date",
-      placeholder: "",
     },
   ];
 
@@ -212,17 +233,11 @@ export default function ProfilePage() {
                       />
                     ) : (
                       <p className="text-[14px] font-semibold text-[#111827] truncate">
-                        {key === "dob" && form[key]
-                          ? new Date(form[key]).toLocaleDateString("en-IN", {
-                              day: "numeric",
-                              month: "long",
-                              year: "numeric",
-                            })
-                          : form[key] || (
-                              <span className="text-gray-300 font-normal">
-                                Not added
-                              </span>
-                            )}
+                        {form[key] || (
+                          <span className="text-gray-300 font-normal">
+                            Not added
+                          </span>
+                        )}
                       </p>
                     )}
                   </div>

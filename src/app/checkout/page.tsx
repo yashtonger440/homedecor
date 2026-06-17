@@ -9,16 +9,9 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 
 import {
-  FiArrowLeft,
-  FiCreditCard,
-  FiShield,
-  FiTag,
-  FiCheck,
-  FiLock,
-  FiRefreshCcw,
-  FiChevronRight,
-  FiMapPin,
-  FiLoader,
+  FiArrowLeft, FiCreditCard, FiShield, FiTag,
+  FiCheck, FiLock, FiRefreshCcw, FiChevronRight,
+  FiMapPin, FiSmartphone,
 } from "react-icons/fi";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -26,12 +19,38 @@ import { RootState } from "@/store/store";
 import Footer from "@/components/footer/Footer";
 import { clearCart } from "@/store/features/cartSlice";
 
+// Razorpay types
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
+// Load Razorpay script
+const loadRazorpayScript = (): Promise<boolean> => {
+  return new Promise((resolve) => {
+    if (document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]')) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+
 export default function CheckoutPage() {
   const dispatch = useDispatch();
   const [cartItems, setCartItems] = useState<any[]>([]);
-  const { currentUser } = useSelector((state: RootState) => state.auth);
+  const [paymentMethod, setPaymentMethod] = useState<"razorpay" | "cod">("razorpay");
+  const [processing, setProcessing] = useState(false);
   const [locating, setLocating] = useState(false);
   const [locationError, setLocationError] = useState("");
+  const [cartLoaded, setCartLoaded] = useState(false);
+
+  const { currentUser } = useSelector((state: RootState) => state.auth);
 
   const [formData, setFormData] = useState({
     fullName: currentUser?.name || "",
@@ -44,7 +63,7 @@ export default function CheckoutPage() {
   });
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const discount = subtotal >= 5000 ? Math.round(subtotal * 0.1) : 0;
+  const discount = subtotal >= 1999 ? Math.round(subtotal * 0.1) : 0;
   const shipping = subtotal > 500 ? 0 : 40;
   const total = subtotal - discount + shipping;
 
@@ -59,34 +78,18 @@ export default function CheckoutPage() {
       setLocationError("Geolocation is not supported by your browser.");
       return;
     }
-
     setLocating(true);
-
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
         try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
-          );
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
           const data = await res.json();
           const addr = data.address || {};
-
           setFormData((prev) => ({
             ...prev,
-            address: [
-              addr.house_number,
-              addr.road,
-              addr.neighbourhood || addr.suburb,
-            ]
-              .filter(Boolean)
-              .join(", "),
-            city:
-              addr.city ||
-              addr.town ||
-              addr.village ||
-              addr.county ||
-              "",
+            address: [addr.house_number, addr.road, addr.neighbourhood || addr.suburb].filter(Boolean).join(", "),
+            city: addr.city || addr.town || addr.village || addr.county || "",
             state: addr.state || "",
             zip: addr.postcode || "",
           }));
@@ -99,7 +102,7 @@ export default function CheckoutPage() {
       (err) => {
         setLocating(false);
         if (err.code === err.PERMISSION_DENIED) {
-          setLocationError("Location permission denied. Please allow location access.");
+          setLocationError("Location permission denied.");
         } else {
           setLocationError("Could not get location. Please fill manually.");
         }
@@ -108,61 +111,192 @@ export default function CheckoutPage() {
     );
   };
 
+  // SAVE ORDER TO DB
+  const saveOrder = async (paymentId: string, paymentStatus: string) => {
+    const userEmail = currentUser?.email || formData.email;
+
+    const orderData = {
+      orderId: `NSH-${Date.now()}`,
+      userEmail,
+      estimatedDelivery: "3 - 5 Business Days",
+      subtotal, shipping, discount,
+      totalAmount: total,
+      status: "Processing",
+      paymentId,
+      paymentStatus,
+      paymentMethod: paymentMethod === "razorpay" ? "Online" : "COD",
+      shippingAddress: `${formData.fullName}, ${formData.address}, ${formData.city}, ${formData.state} - ${formData.zip}`,
+      phone: formData.phone,
+      items: cartItems.map((item) => ({
+        id: item.id,
+        title: item.title,
+        image: item.image,
+        price: item.price,
+        quantity: item.quantity,
+        totalPrice: item.price * item.quantity,
+      })),
+    };
+
+    const res = await fetch("/api/orders/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(orderData),
+    });
+    return await res.json();
+  };
+
+  // RAZORPAY PAYMENT
+  const handleRazorpayPayment = async () => {
+    setProcessing(true);
+
+    try {
+      const loaded = await loadRazorpayScript();
+      if (!loaded) {
+        alert("Razorpay failed to load. Check your internet connection.");
+        setProcessing(false);
+        return;
+      }
+
+      const orderRes = await fetch("/api/payment/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: total }),
+      });
+      const orderData = await orderRes.json();
+
+      if (!orderData.success) {
+        alert("Could not initiate payment. Please try again.");
+        setProcessing(false);
+        return;
+      }
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: orderData.order.amount,
+        currency: "INR",
+        name: "NishMee",
+        description: "Luxury Home Decor",
+        order_id: orderData.order.id,
+        prefill: {
+          name: formData.fullName,
+          email: formData.email,
+          contact: formData.phone,
+        },
+        theme: { color: "#111827" },
+
+        // UPI + all methods enabled
+        method: {
+          upi: true,
+          card: true,
+          netbanking: true,
+          wallet: true,
+        },
+
+        handler: async (response: any) => {
+          try {
+            const verifyRes = await fetch("/api/payment/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
+            const verifyData = await verifyRes.json();
+
+            if (!verifyData.success) {
+              alert("Payment verification failed. Contact support.");
+              setProcessing(false);
+              return;
+            }
+
+            const saved = await saveOrder(response.razorpay_payment_id, "Paid");
+            if (saved.success) {
+              dispatch(clearCart());
+              window.location.href = "/success";
+            } else {
+              alert("Order save failed. Contact support with payment ID: " + response.razorpay_payment_id);
+            }
+          } catch (err) {
+            console.error(err);
+            alert("Something went wrong after payment.");
+          } finally {
+            setProcessing(false);
+          }
+        },
+
+        modal: {
+          ondismiss: () => {
+            setProcessing(false);
+          },
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+
+    } catch (error) {
+      console.error(error);
+      alert("Payment failed. Please try again.");
+      setProcessing(false);
+    }
+  };
+
+  // COD ORDER
+  const handleCOD = async () => {
+    setProcessing(true);
+    try {
+      const saved = await saveOrder("COD", "Pending");
+      if (saved.success) {
+        dispatch(clearCart());
+        window.location.href = "/success";
+      } else {
+        alert(saved.message || "Order creation failed");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   const handlePlaceOrder = async () => {
-    if (!formData.fullName || !formData.email || !formData.phone || !formData.address) {
+    if (
+      !formData.fullName ||
+      !formData.email ||
+      !formData.phone ||
+      !formData.address ||
+      !formData.city ||
+      !formData.state ||
+      !formData.zip
+    ) {
       alert("Please fill all required fields");
       return;
     }
 
-    const userEmail =
-      currentUser?.email ||
-      JSON.parse(localStorage.getItem("currentUser") || "{}").email ||
-      formData.email;
+    if (!/^[6-9]\d{9}$/.test(formData.phone)) {
+      alert("Please enter a valid 10 digit mobile number");
+      return;
+    }
 
+    if (!/^\d{6}$/.test(formData.zip)) {
+      alert("Please enter a valid 6 digit pincode");
+      return;
+    }
+
+    const userEmail = currentUser?.email || formData.email;
     if (!userEmail) {
       alert("Please login to place an order");
       window.location.href = "/login";
       return;
     }
 
-    try {
-      const orderData = {
-        orderId: `NSH-${Date.now()}`,
-        userEmail,
-        estimatedDelivery: "3 - 5 Business Days",
-        subtotal, shipping, discount,
-        totalAmount: total,
-        status: "Processing",
-        shippingAddress: `${formData.fullName}, ${formData.address}, ${formData.city}, ${formData.state}, ${formData.zip}`,
-        items: cartItems.map((item) => ({
-          id: item.id,
-          title: item.title,
-          image: item.image,
-          price: item.price,
-          quantity: item.quantity,
-          totalPrice: item.price * item.quantity,
-        })),
-      };
-
-      const response = await fetch("/api/orders/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(orderData),
-      });
-
-      const data = await response.json();
-
-      if (!data.success) {
-        alert(data.message || "Order creation failed");
-        return;
-      }
-
-      dispatch(clearCart());
-      alert("Order Placed Successfully");
-      window.location.href = "/success";
-    } catch (error) {
-      console.error(error);
-      alert("Something went wrong");
+    if (paymentMethod === "razorpay") {
+      await handleRazorpayPayment();
+    } else {
+      await handleCOD();
     }
   };
 
@@ -172,11 +306,19 @@ export default function CheckoutPage() {
       const stored = JSON.parse(localStorage.getItem(`cart_${email}`) || "[]");
       setCartItems(stored);
     }
-  }, [currentUser, dispatch]);
+
+    setCartLoaded(true);
+  }, [currentUser]);
 
   useEffect(() => {
     dispatch(loadCart());
   }, [dispatch]);
+
+  useEffect(() => {
+  if (cartLoaded && cartItems.length === 0) {
+    window.location.href = "/cart";
+  }
+}, [cartLoaded, cartItems]);
 
   return (
     <>
@@ -189,9 +331,7 @@ export default function CheckoutPage() {
               <FiArrowLeft size={14} />
               Back To Cart
             </Link>
-
             <h1 className="ml-[120px] text-[22px] font-black tracking-[-1px] text-[#111827]">Checkout</h1>
-
             <div className="hidden items-center gap-2 text-[12px] font-semibold md:flex">
               {["Cart", "Shipping", "Payment"].map((step, i) => (
                 <div key={step} className="flex items-center gap-2">
@@ -215,75 +355,68 @@ export default function CheckoutPage() {
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-[34px] bg-white p-[34px] shadow-[0_10px_40px_rgba(0,0,0,0.05)]"
+              className="flex flex-col gap-6"
             >
-              <div className="mb-7 flex items-center justify-between">
-                <h2 className="text-[30px] font-black text-[#111827]">Shipping Details</h2>
+              {/* SHIPPING DETAILS */}
+              <div className="rounded-[34px] bg-white p-[34px] shadow-[0_10px_40px_rgba(0,0,0,0.05)]">
+                <div className="mb-7 flex items-center justify-between">
+                  <h2 className="text-[28px] font-black text-[#111827]">Shipping Details</h2>
+                  <button
+                    onClick={handleAutoFill}
+                    disabled={locating}
+                    className="flex items-center gap-2 rounded-full border border-[#e5e7eb] bg-[#f8f5f0] px-4 py-2.5 text-[13px] font-semibold text-[#111827] transition-all hover:bg-[#111827] hover:text-white disabled:opacity-60"
+                  >
+                    {locating ? (
+                      <><div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />Detecting...</>
+                    ) : (
+                      <><FiMapPin size={14} />Use My Location</>
+                    )}
+                  </button>
+                </div>
 
-                {/* AUTO FILL BUTTON */}
-                <button
-                  onClick={handleAutoFill}
-                  disabled={locating}
-                  className="flex items-center gap-2 rounded-full border border-[#e5e7eb] bg-[#f8f5f0] px-4 py-2.5 text-[13px] font-semibold text-[#111827] transition-all hover:bg-[#111827] hover:text-white disabled:opacity-60"
-                >
-                  {locating ? (
-                    <>
-                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                      </svg>
-                      Detecting...
-                    </>
-                  ) : (
-                    <>
-                      <FiMapPin size={14} />
-                      Use My Location
-                    </>
-                  )}
-                </button>
+                {locationError && (
+                  <div className="mb-5 rounded-[14px] border border-red-200 bg-red-50 px-4 py-3 text-[13px] font-medium text-red-600">
+                    {locationError}
+                  </div>
+                )}
+
+                <div className="grid gap-5 sm:grid-cols-2">
+                  {[
+                    { label: "Full Name", name: "fullName", type: "text", placeholder: "Enter your name" },
+                    { label: "Email Address", name: "email", type: "email", placeholder: "Enter your email" },
+                    { label: "Phone Number", name: "phone", type: "text", placeholder: "Enter phone number" },
+                    { label: "City", name: "city", type: "text", placeholder: "Enter city" },
+                  ].map(({ label, name, type, placeholder }) => (
+                    <div key={name}>
+                      <label className="mb-[10px] block text-sm font-medium">{label}</label>
+                      <input
+                        type={type} name={name}
+                        value={formData[name as keyof typeof formData]}
+                        onChange={handleChange}
+                        placeholder={placeholder}
+                        className="h-[58px] w-full rounded-[18px] border border-transparent bg-[#f8f5f0] px-[18px] outline-none transition focus:border-black"
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-5">
+                  <label className="mb-[10px] block text-sm font-medium">Full Address</label>
+                  <input type="text" name="address" value={formData.address} onChange={handleChange} placeholder="House no, Street, Area" className="h-[58px] w-full rounded-[18px] border border-transparent bg-[#f8f5f0] px-[18px] outline-none transition focus:border-black" />
+                </div>
+
+                <div className="mt-5 grid gap-5 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-[10px] block text-sm font-medium">State</label>
+                    <input type="text" name="state" value={formData.state} onChange={handleChange} placeholder="Enter state" className="h-[58px] w-full rounded-[18px] border border-transparent bg-[#f8f5f0] px-[18px] outline-none transition focus:border-black" />
+                  </div>
+                  <div>
+                    <label className="mb-[10px] block text-sm font-medium">ZIP Code</label>
+                    <input type="text" name="zip" value={formData.zip} onChange={handleChange} placeholder="ZIP code" className="h-[58px] w-full rounded-[18px] border border-transparent bg-[#f8f5f0] px-[18px] outline-none transition focus:border-black" />
+                  </div>
+                </div>
               </div>
 
-              {/* Location error */}
-              {locationError && (
-                <div className="mb-5 rounded-[14px] border border-red-200 bg-red-50 px-4 py-3 text-[13px] font-medium text-red-600">
-                  {locationError}
-                </div>
-              )}
-
-              <div className="grid gap-5 sm:grid-cols-2">
-                <div>
-                  <label className="mb-[10px] block text-sm font-medium">Full Name</label>
-                  <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} placeholder="Enter your name" className="h-[58px] w-full rounded-[18px] border border-transparent bg-[#f8f5f0] px-[18px] outline-none transition focus:border-black" />
-                </div>
-                <div>
-                  <label className="mb-[10px] block text-sm font-medium">Email Address</label>
-                  <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Enter your email" className="h-[58px] w-full rounded-[18px] border border-transparent bg-[#f8f5f0] px-[18px] outline-none transition focus:border-black" />
-                </div>
-                <div>
-                  <label className="mb-[10px] block text-sm font-medium">Phone Number</label>
-                  <input type="text" name="phone" value={formData.phone} onChange={handleChange} placeholder="Enter phone number" className="h-[58px] w-full rounded-[18px] border border-transparent bg-[#f8f5f0] px-[18px] outline-none transition focus:border-black" />
-                </div>
-                <div>
-                  <label className="mb-[10px] block text-sm font-medium">City</label>
-                  <input type="text" name="city" value={formData.city} onChange={handleChange} placeholder="Enter city" className="h-[58px] w-full rounded-[18px] border border-transparent bg-[#f8f5f0] px-[18px] outline-none transition focus:border-black" />
-                </div>
-              </div>
-
-              <div className="mt-[22px]">
-                <label className="mb-[10px] block text-sm font-medium">Full Address</label>
-                <input type="text" name="address" value={formData.address} onChange={handleChange} placeholder="Enter your address" className="h-[58px] w-full rounded-[18px] border border-transparent bg-[#f8f5f0] px-[18px] outline-none transition focus:border-black" />
-              </div>
-
-              <div className="mt-[22px] grid gap-5 sm:grid-cols-2">
-                <div>
-                  <label className="mb-[10px] block text-sm font-medium">State</label>
-                  <input type="text" name="state" value={formData.state} onChange={handleChange} placeholder="Enter state" className="h-[58px] w-full rounded-[18px] border border-transparent bg-[#f8f5f0] px-[18px] outline-none transition focus:border-black" />
-                </div>
-                <div>
-                  <label className="mb-[10px] block text-sm font-medium">ZIP Code</label>
-                  <input type="text" name="zip" value={formData.zip} onChange={handleChange} placeholder="ZIP code" className="h-[58px] w-full rounded-[18px] border border-transparent bg-[#f8f5f0] px-[18px] outline-none transition focus:border-black" />
-                </div>
-              </div>
             </motion.div>
 
             {/* RIGHT — ORDER SUMMARY */}
@@ -299,83 +432,98 @@ export default function CheckoutPage() {
                   <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#f8f5f0] text-[#c9a96e]"><FiTag /></div>
                 </div>
 
-                <div className="mb-[26px] flex flex-col gap-4">
+                <div className="mb-[26px] flex flex-col gap-4 max-h-[260px] overflow-y-auto pr-1">
                   {cartItems.map((item) => (
                     <div key={item.id} className="flex items-center gap-4">
                       <div className="relative h-[72px] w-[72px] flex-shrink-0 overflow-hidden rounded-[18px] bg-[#f8f5f0]">
                         <Image src={item.image} alt={item.title} fill className="object-cover" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="mb-[6px] text-[15px] font-bold leading-[1.3] text-[#111827]">{item.title}</h3>
+                        <h3 className="mb-[6px] text-[15px] font-bold leading-[1.3] text-[#111827] line-clamp-2">{item.title}</h3>
                         <p className="text-[13px] text-[#a89880]">Qty: {item.quantity}</p>
                       </div>
-                      <p className="text-[16px] font-black text-[#111827]">₹{item.price * item.quantity}</p>
+                      <p className="text-[16px] font-black text-[#111827] shrink-0">₹{item.price * item.quantity}</p>
                     </div>
                   ))}
                 </div>
 
-                <div className="mb-[24px] border-t border-dashed border-[#e8e0d4] pt-6">
-                  <div className="mb-4 flex items-center justify-between">
-                    <div>
-                      <p className="text-[14px] text-[#a89880]">Subtotal</p>
-                      <p className="text-[12px] text-[#c4b8a8]">{cartItems.length} items</p>
-                    </div>
+                <div className="mb-[24px] border-t border-dashed border-[#e8e0d4] pt-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[14px] text-[#a89880]">Subtotal ({cartItems.length} items)</p>
                     <span className="font-bold text-[#111827]">₹{subtotal}</span>
                   </div>
-
                   {discount > 0 && (
-                    <div className="mb-4 flex items-center justify-between">
-                      <div>
-                        <p className="text-[14px] text-[#a89880]">Discount (10%)</p>
-                        <p className="text-[12px] text-emerald-600">Luxury offer applied</p>
-                      </div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-[14px] text-emerald-600">Discount (10%)</p>
                       <span className="font-bold text-emerald-600">-₹{discount}</span>
                     </div>
                   )}
-
-                  <div className="mb-[22px] flex items-center justify-between">
-                    <div>
-                      <p className="text-[14px] text-[#a89880]">Shipping</p>
-                      <p className={`text-[12px] ${shipping === 0 ? "text-emerald-600" : "text-[#c4b8a8]"}`}>
-                        {shipping === 0 ? "Free Delivery" : "Standard Delivery"}
-                      </p>
-                    </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-[14px] text-[#a89880]">Shipping</p>
                     <span className={`font-bold ${shipping === 0 ? "text-emerald-600" : "text-[#111827]"}`}>
                       {shipping === 0 ? "FREE" : `₹${shipping}`}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between rounded-[22px] bg-[#111827] px-[22px] py-5">
+                  <div className="flex items-center justify-between rounded-[22px] bg-[#111827] px-[22px] py-5 mt-2">
                     <div>
                       <p className="text-sm text-white/60">Total Amount</p>
-                      <p className="text-xs text-white">Secure SSL Checkout</p>
+                      <p className="text-xs text-white/40">
+                        {paymentMethod === "razorpay" ? "Pay via Razorpay" : "Cash On Delivery"}
+                      </p>
                     </div>
                     <span className="text-[28px] font-black text-white">₹{total}</span>
                   </div>
                 </div>
 
-                <div className="mb-[24px] rounded-[24px] bg-[#f8f5f0] p-[18px]">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-[52px] w-[52px] items-center justify-center rounded-[16px] bg-white"><FiCreditCard /></div>
-                    <div>
-                      <p className="font-bold text-[#111827]">Cash On Delivery</p>
-                      <p className="text-sm text-[#a89880]">Pay when your order arrives</p>
-                    </div>
-                  </div>
+                {/* COMPACT PAYMENT METHOD TOGGLE */}
+                <div className="mb-4 grid grid-cols-2 gap-1.5 rounded-2xl bg-[#f8f5f0] p-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("razorpay")}
+                    className={`flex items-center justify-center gap-1.5 rounded-xl py-2.5 text-[12px] font-bold transition-all ${paymentMethod === "razorpay"
+                      ? "bg-white text-[#111827] shadow-sm"
+                      : "text-[#a89880]"
+                      }`}
+                  >
+                    <FiCreditCard size={13} />
+                    Pay Online
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("cod")}
+                    className={`flex items-center justify-center gap-1.5 rounded-xl py-2.5 text-[12px] font-bold transition-all ${paymentMethod === "cod"
+                      ? "bg-white text-[#111827] shadow-sm"
+                      : "text-[#a89880]"
+                      }`}
+                  >
+                    <FiSmartphone size={13} />
+                    Cash On Delivery
+                  </button>
                 </div>
+
+                {paymentMethod === "razorpay" && (
+                  <p className="mb-4 text-center text-[11px] font-semibold text-amber-600">
+                    Test Mode — Card: 4718 6000 0000 0002 | 12/26 | CVV 123 | OTP 1234
+                  </p>
+                )}
 
                 <motion.button
                   whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handlePlaceOrder}
-                  className="mb-[18px] flex h-[60px] w-full items-center justify-center gap-3 rounded-full bg-[#c9a96e] text-[15px] font-extrabold text-black transition-all duration-300 hover:bg-[#b8955a]"
+                  disabled={processing}
+                  className="mb-[18px] flex h-[60px] w-full items-center justify-center gap-3 rounded-full bg-[#c9a96e] text-[15px] font-extrabold text-black transition-all duration-300 hover:bg-[#b8955a] disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  <FiLock size={15} />
-                  Place Secure Order
+                  {processing ? (
+                    <><div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />Processing...</>
+                  ) : (
+                    <><FiLock size={15} />{paymentMethod === "razorpay" ? "Pay Now ₹" + total : "Place Order"}</>
+                  )}
                 </motion.button>
 
                 <div className="flex flex-wrap items-center justify-center gap-5">
-                  <div className="flex items-center gap-2 text-[12px] font-semibold text-[#a89880]"><FiShield size={13} />Secure</div>
+                  <div className="flex items-center gap-2 text-[12px] font-semibold text-[#a89880]"><FiShield size={13} />100% Secure</div>
                   <div className="flex items-center gap-2 text-[12px] font-semibold text-[#a89880]"><FiCheck size={13} />Guaranteed</div>
                   <div className="flex items-center gap-2 text-[12px] font-semibold text-[#a89880]"><FiRefreshCcw size={13} />Easy Returns</div>
                 </div>

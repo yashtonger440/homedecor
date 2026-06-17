@@ -3,7 +3,7 @@ import Hero from "@/components/home/Hero";
 import Categories from "@/components/home/Categories";
 import FeaturedProducts from "@/components/home/FeaturedProducts";
 import Collections from "@/components/home/Collections";
-import Testimonials from "@/components/home/Testimonials";
+import TrustBadges from "@/components/home/TrustBadges";
 import Footer from "@/components/footer/Footer";
 
 export default function HomePage() {
@@ -15,7 +15,7 @@ export default function HomePage() {
       <Categories />
       <FeaturedProducts />
       <Collections />
-      <Testimonials />
+      <TrustBadges />
       <Footer />
     </>
   );

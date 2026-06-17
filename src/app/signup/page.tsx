@@ -9,6 +9,7 @@ import {
   FiLock,
   FiArrowRight,
   FiHeart,
+  FiPhone,
 } from "react-icons/fi";
 
 import Navbar from "@/components/navbar/Navbar";
@@ -25,6 +26,8 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
 
   const [password, setPassword] = useState("");
+
+  const [phone, setPhone] = useState("");
 
   const handleSignup = async (
     e: React.FormEvent
@@ -43,20 +46,21 @@ export default function SignupPage() {
           name,
           email,
           password,
+          phone,
         }),
       }
-    );
+      );
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!data.success) {
-      alert(data.message || "signup failed. please try again.");
-      return;
-    }
+      if (!data.success) {
+        alert(data.message || "signup failed. please try again.");
+        return;
+      }
 
-    alert("Account created successfully!");
+      alert("Account created successfully!");
 
-    router.push("/login");
+      router.push("/login");
 
     } catch (error) {
       console.log("Signup error:", error);
@@ -71,7 +75,7 @@ export default function SignupPage() {
 
       <section className="min-h-screen overflow-hidden bg-[#f8f5f0]">
         <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-4 pb-16 pt-[110px] sm:px-6 md:gap-14 lg:grid-cols-2 lg:gap-20 lg:px-8 lg:pb-20">
-          
+
           {/* LEFT SIDE */}
           <motion.div
             initial={{ opacity: 0, x: -40 }}
@@ -138,7 +142,7 @@ export default function SignupPage() {
             transition={{ duration: 0.6 }}
             className="mx-auto w-full max-w-[520px] rounded-[28px] bg-white p-6 shadow-[0_10px_40px_rgba(0,0,0,0.06)] sm:rounded-[34px] sm:p-8 md:p-10"
           >
-            
+
             {/* TOP */}
             <div className="mb-8 sm:mb-9">
               <h2 className="mb-2 text-[30px] font-black text-[#111827] sm:mb-3 sm:text-[38px]">
@@ -156,7 +160,7 @@ export default function SignupPage() {
               onSubmit={handleSignup}
               className="flex flex-col gap-5"
             >
-              
+
               {/* NAME */}
               <div>
                 <label className="mb-2.5 block text-[13px] font-semibold text-[#111827] sm:text-[14px]">
@@ -220,6 +224,23 @@ export default function SignupPage() {
                 </div>
               </div>
 
+              {/* PHONE */}
+              <div>
+                <label className="mb-2.5 block text-[13px] font-semibold text-[#111827] sm:text-[14px]">
+                  Mobile Number
+                </label>
+                <div className="flex h-[56px] items-center gap-3 rounded-[16px] border border-transparent bg-[#f8f5f0] px-4 transition focus-within:border-black sm:h-[60px] sm:px-5">
+                  <FiPhone className="shrink-0 text-[18px] text-gray-400" />
+                  <input
+                    type="tel"
+                    placeholder="Enter your mobile number"
+                    className="w-full bg-transparent text-[14px] text-black outline-none placeholder:text-gray-400 sm:text-[15px]"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+                </div>
+              </div>
+
               {/* BUTTON */}
               <motion.button
                 whileHover={{ y: -2 }}
@@ -236,7 +257,7 @@ export default function SignupPage() {
             <div className="mt-6 text-center sm:mt-7">
               <p className="text-sm text-gray-500 sm:text-[15px]">
                 Already have an account?{" "}
-                
+
                 <Link
                   href="/login"
                   className="font-semibold text-black transition hover:text-[#c9a96e]"

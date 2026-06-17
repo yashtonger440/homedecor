@@ -231,34 +231,6 @@ export default function CollectionsPage() {
           </div>
         </div>
 
-        {/* ── TRUST SECTION ── */}
-        <div className="px-4 sm:px-6 lg:px-8 pb-16 sm:pb-20 lg:pb-24">
-          <div className="max-w-7xl mx-auto w-full">
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-              {[
-                { title: "Premium Materials", text: "Crafted using luxury-grade materials and elegant finishes." },
-                { title: "Modern Design",     text: "Elegant collections inspired by modern interiors." },
-                { title: "Fast Delivery",     text: "Safe and premium delivery experience worldwide." },
-                { title: "Secure Payments",   text: "Trusted and secure checkout for all customers." },
-              ].map((item, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  className="bg-white shadow-sm hover:shadow-xl transition duration-500 p-6 sm:p-7 rounded-[20px] sm:rounded-[24px]"
-                >
-                  <h3 className="font-bold text-[18px] sm:text-[22px] mb-3 sm:mb-3.5">
-                    {item.title}
-                  </h3>
-                  <p className="text-gray-500 leading-8 text-sm sm:text-base">{item.text}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
-
         {/* ── WHY CHOOSE US ── */}
         <div className="bg-white px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24">
           <div className="max-w-7xl mx-auto w-full">
@@ -297,46 +269,6 @@ export default function CollectionsPage() {
                   <p className="leading-8 text-gray-500 group-hover:text-gray-300 transition text-sm sm:text-base">
                     {item.text}
                   </p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* ── TESTIMONIALS ── */}
-        <div className="px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24">
-          <div className="max-w-7xl mx-auto w-full">
-
-            <div className="text-center mb-12 sm:mb-14 lg:mb-16">
-              <p className="uppercase tracking-[5px] text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4">
-                Testimonials
-              </p>
-              <h2 className="text-[34px] sm:text-[42px] md:text-[48px] lg:text-[52px] font-bold">
-                What Our Customers Say
-              </h2>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-              {[
-                { name: "Sophia Williams", review: "Absolutely loved the premium quality and elegant furniture collection." },
-                { name: "James Anderson",  review: "The luxury interior collection completely transformed my home." },
-                { name: "Emma Brown",      review: "Beautiful modern designs with premium customer experience." },
-              ].map((item, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  className="bg-white shadow-sm p-6 sm:p-7 lg:p-[30px] rounded-[20px] sm:rounded-[24px]"
-                >
-                  <div className="flex items-center gap-1 text-yellow-500 mb-4 sm:mb-[18px]">
-                    ★★★★★
-                  </div>
-                  <p className="text-gray-600 leading-8 text-sm sm:text-base mb-5 sm:mb-[22px]">
-                    {item.review}
-                  </p>
-                  <h4 className="font-semibold text-base sm:text-lg">{item.name}</h4>
                 </motion.div>
               ))}
             </div>

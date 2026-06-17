@@ -8,7 +8,7 @@ export async function POST(req: Request) {
   try {
     await connectDB();
 
-    const { name, email, password } =
+    const { name, email, password, phone } =
       await req.json();
 
     const existingUser =
@@ -31,6 +31,7 @@ export async function POST(req: Request) {
       name,
       email,
       password: hashedPassword,
+      phone,
     });
 
     return NextResponse.json({

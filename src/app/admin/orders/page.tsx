@@ -29,6 +29,20 @@ const STATUS_STYLES: Record<string, string> = {
   Cancelled:  "bg-red-100 text-red-600",
 };
 
+// PAYMENT BADGE HELPER
+const getPaymentBadge = (order: any) => {
+  const method = order.paymentMethod?.toLowerCase();
+  const status = order.paymentStatus?.toLowerCase();
+
+  if (method === "online" || method === "razorpay") {
+    if (status === "paid") {
+      return { label: "Paid Online", className: "bg-emerald-100 text-emerald-700" };
+    }
+    return { label: "Payment Pending", className: "bg-red-100 text-red-600" };
+  }
+  return { label: "COD", className: "bg-amber-100 text-amber-700" };
+};
+
 const STATUS_OPTIONS = ["Processing", "Shipped", "Delivered", "Cancelled"];
 const FILTER_TABS = ["All", "Processing", "Shipped", "Delivered", "Cancelled"];
 
@@ -257,6 +271,9 @@ export default function AdminOrdersPage() {
                         <span className="rounded-full bg-[#f3f4f6] px-2.5 py-1 text-[10px] font-semibold text-[#111827]">
                           {formatDate(order.createdAt)}
                         </span>
+                        <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${getPaymentBadge(order).className}`}>
+                          {getPaymentBadge(order).label}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -348,6 +365,19 @@ export default function AdminOrdersPage() {
                     Est. {detailOrder.estimatedDelivery}
                   </span>
                 )}
+              </div>
+
+              {/* PAYMENT INFO */}
+              <div className="rounded-2xl bg-[#f8f9fb] p-4 flex flex-col gap-2">
+                <p className="text-[10px] font-bold uppercase tracking-[2px] text-[#9ca3af]">Payment</p>
+                <div className="flex items-center justify-between">
+                  <span className={`rounded-full px-3 py-1.5 text-[11px] font-semibold ${getPaymentBadge(detailOrder).className}`}>
+                    {getPaymentBadge(detailOrder).label}
+                  </span>
+                  {detailOrder.paymentId && (
+                    <span className="text-[11px] font-mono text-[#6b7280]">{detailOrder.paymentId}</span>
+                  )}
+                </div>
               </div>
 
               {/* CUSTOMER INFO */}

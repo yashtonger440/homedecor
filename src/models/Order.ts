@@ -17,6 +17,23 @@ const OrderSchema = new mongoose.Schema(
       default: "Processing",
     },
 
+    // NEW FIELDS
+    paymentMethod: {
+        type: String,
+        enum: ["COD", "Online"],
+        default: "COD",
+    },
+
+    paymentStatus: {
+        type: String,
+        enum: ["pending", "paid", "failed"],
+        default: "pending",
+    },
+
+    paymentId: {
+        type: String,
+    },
+
     shippingAddress: {
         type: String,
     },

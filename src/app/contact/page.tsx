@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useState } from "react";
 
 import {
   FiMail,
@@ -45,6 +46,48 @@ const contactInfo = [
 ];
 
 export default function ContactPage() {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+  });
+  const [status, setStatus] = useState("");
+
+  const handleChange = (
+  e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+) => {
+  setFormData({
+    ...formData,
+    [e.target.name]: e.target.value,
+  });
+};
+
+  const handleSubmit = async (
+  e: React.FormEvent<HTMLFormElement>
+) => {
+  e.preventDefault();
+  setStatus("loading");
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setStatus("success");
+        setFormData({ name: "", email: "", subject: "", message: "" });
+      } else {
+        setStatus("error");
+      }
+    } catch (err) {
+      setStatus("error");
+    }
+  };
   return (
     <>
       <Navbar />
@@ -184,7 +227,7 @@ export default function ContactPage() {
               </div>
 
               {/* FORM */}
-              <form className="flex flex-col gap-5">
+              <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
 
                 {/* NAME + EMAIL ROW */}
                 <div className="grid md:grid-cols-2 gap-5">
@@ -194,6 +237,10 @@ export default function ContactPage() {
                     </label>
                     <input
                       type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
                       placeholder="Enter your name"
                       className="w-full h-[52px] sm:h-[56px] bg-[#f8f5f0] rounded-[14px] sm:rounded-[16px] px-4 sm:px-[18px] text-[14px] outline-none border border-transparent focus:border-black transition"
                     />
@@ -205,6 +252,10 @@ export default function ContactPage() {
                     </label>
                     <input
                       type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
                       placeholder="Enter your email"
                       className="w-full h-[52px] sm:h-[56px] bg-[#f8f5f0] rounded-[14px] sm:rounded-[16px] px-4 sm:px-[18px] text-[14px] outline-none border border-transparent focus:border-black transition"
                     />
@@ -218,6 +269,10 @@ export default function ContactPage() {
                   </label>
                   <input
                     type="text"
+                    name="subject"
+                    value={formData.subject}
+                    onChange={handleChange}
+                    required
                     placeholder="Write subject"
                     className="w-full h-[52px] sm:h-[56px] bg-[#f8f5f0] rounded-[14px] sm:rounded-[16px] px-4 sm:px-[18px] text-[14px] outline-none border border-transparent focus:border-black transition"
                   />
@@ -229,6 +284,10 @@ export default function ContactPage() {
                     Message
                   </label>
                   <textarea
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    required
                     placeholder="Write your message..."
                     className="w-full h-[150px] sm:h-[170px] bg-[#f8f5f0] rounded-[18px] sm:rounded-[20px] p-4 sm:p-[18px] text-[14px] outline-none border border-transparent focus:border-black transition resize-none"
                   />
@@ -237,11 +296,23 @@ export default function ContactPage() {
                 {/* SUBMIT */}
                 <button
                   type="submit"
-                  className="h-[54px] sm:h-[58px] rounded-full bg-black text-white hover:bg-[#222] transition-all duration-300 flex items-center justify-center gap-3 text-[14px] sm:text-[15px] font-semibold mt-2"
+                  disabled={status === "loading"}
+                  className="h-[54px] sm:h-[58px] rounded-full bg-black text-white hover:bg-[#222] transition-all duration-300 flex items-center justify-center gap-3 text-[14px] sm:text-[15px] font-semibold mt-2 disabled:opacity-50"
                 >
-                  Send Message
+                  {status === "loading" ? "Sending..." : "Send Message"}
                   <FiSend />
                 </button>
+
+                {status === "success" && (
+                  <p className="text-green-600 text-sm text-center">
+                    Message sent successfully! We'll get back to you soon.
+                  </p>
+                )}
+                {status === "error" && (
+                  <p className="text-red-600 text-sm text-center">
+                    Something went wrong. Please try again.
+                  </p>
+                )}
               </form>
             </motion.div>
           </div>

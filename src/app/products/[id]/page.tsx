@@ -9,6 +9,8 @@ import { useParams } from "next/navigation";
 
 import { motion, AnimatePresence } from "framer-motion";
 
+import ReviewSection from "@/components/products/ReviewSection";
+
 import {
   FiHeart,
   FiShoppingBag,
@@ -306,16 +308,6 @@ export default function ProductDetails() {
 
               {/* RATING + STOCK */}
               <div className="flex items-center flex-wrap gap-4 mb-6">
-                <div className="flex items-center gap-1.5">
-                  {/* <div className="flex items-center gap-0.5">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <FiStar
-                        key={i}
-                        className={`text-[14px] transition-colors ${i < fullStars ? "fill-[#c9a96e] text-[#c9a96e]" : i === fullStars && hasHalf ? "fill-[#c9a96e]/50 text-[#c9a96e]" : "text-[#d1d5db]"}`}
-                      />
-                    ))}
-                  </div> */}
-                </div>
 
                 {isInStock ? (
                   <div className="flex items-center gap-1.5 text-emerald-600">
@@ -496,7 +488,7 @@ export default function ProductDetails() {
           {/* RELATED PRODUCTS */}
           {relatedProducts.length > 0 && (
             <div className="mt-24">
-              <div className="flex items-center justify-between mb-10">
+              <div className="flex items-center justify-between mb-5">
                 <div>
                   <p className="uppercase tracking-[4px] text-[11px] text-[#c9a96e] font-semibold mb-3">More Collection</p>
                   <h2 className="text-3xl sm:text-5xl font-black text-black">Related Products</h2>
@@ -513,6 +505,9 @@ export default function ProductDetails() {
             </div>
           )}
         </div>
+
+         {/* REVIEWS */}
+          {params?.id && <ReviewSection productId={params.id as string} />}
 
         {/* IMAGE POPUP */}
         <AnimatePresence>

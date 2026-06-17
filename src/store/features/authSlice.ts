@@ -18,15 +18,15 @@ const initialState: AuthState = {
   currentUser:
     typeof window !== "undefined"
       ? JSON.parse(
-          localStorage.getItem("currentUser") || "null"
-        )
+        localStorage.getItem("currentUser") || "null"
+      )
       : null,
 
   users:
     typeof window !== "undefined"
       ? JSON.parse(
-          localStorage.getItem("users") || "[]"
-        )
+        localStorage.getItem("users") || "[]"
+      )
       : [],
 
   isLoggedIn:
@@ -83,23 +83,23 @@ const authSlice = createSlice({
 
     /* LOGIN */
     login: (
-  state,
-  action: PayloadAction<User>
-) => {
+      state,
+      action: PayloadAction<User>
+    ) => {
 
-  state.currentUser =
-    action.payload;
+      state.currentUser =
+        action.payload;
 
-  state.isLoggedIn = true;
+      state.isLoggedIn = true;
 
-  if (typeof window !== "undefined") {
+      if (typeof window !== "undefined") {
 
-    localStorage.setItem(
-      "currentUser",
-      JSON.stringify(action.payload)
-    );
-  }
-},
+        localStorage.setItem(
+          "currentUser",
+          JSON.stringify(action.payload)
+        );
+      }
+    },
 
     /* LOGOUT */
     logout: (state) => {
@@ -119,6 +119,26 @@ const authSlice = createSlice({
         );
       }
     },
+
+    /* UPDATE PROFILE */
+    updateProfile: (
+      state,
+      action: PayloadAction<Partial<User>>
+    ) => {
+      if (state.currentUser) {
+        state.currentUser = {
+          ...state.currentUser,
+          ...action.payload,
+        };
+
+        if (typeof window !== "undefined") {
+          localStorage.setItem(
+            "currentUser",
+            JSON.stringify(state.currentUser)
+          );
+        }
+      }
+    },
   },
 });
 
@@ -126,6 +146,7 @@ export const {
   signup,
   login,
   logout,
+  updateProfile
 } = authSlice.actions;
 
 export default authSlice.reducer;

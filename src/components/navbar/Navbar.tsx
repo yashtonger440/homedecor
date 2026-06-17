@@ -31,8 +31,6 @@ import { clearCartState } from "@/store/features/cartSlice";
 
 import { clearWishlistState } from "@/store/features/wishlistSlice";
 
-import { products } from "@/data/products";
-
 const navLinks = [
   { name: "Home", href: "/" },
 
@@ -114,6 +112,8 @@ export default function Navbar() {
   const [mobileDropdown, setMobileDropdown] =
     useState<string | null>(null);
 
+  const [allProducts, setAllProducts] = useState<any[]>([]);
+
   /* FIX MOBILE LOGIN PERSIST */
   useEffect(() => {
     if (reduxUser) {
@@ -167,8 +167,22 @@ export default function Navbar() {
       );
   }, []);
 
+  useEffect(() => {
+  const fetchProducts = async () => {
+    try {
+      const res  = await fetch("/api/products", { cache: "no-store" });
+      const data = await res.json();
+      if (data.success) setAllProducts(data.products);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  fetchProducts();
+}, []);
+  
+
   /* SEARCH FILTER */
-  const filteredProducts = products.filter((item: any) => {
+  const filteredProducts = allProducts.filter((item: any) => {
     const term = searchTerm.toLowerCase();
 
     return (
@@ -179,7 +193,7 @@ export default function Navbar() {
 
   const matchedCategories = Array.from(
     new Set(
-      products
+      allProducts
         .filter((item: any) =>
           item.category
             .toLowerCase()
@@ -189,7 +203,7 @@ export default function Navbar() {
     )
   );
 
-  const handleProductClick = (id: number) => {
+  const handleProductClick = (id: string) => {
     router.push(`/products/${id}`);
     setSearchOpen(false);
     setSearchTerm("");
@@ -564,9 +578,9 @@ export default function Navbar() {
                     filteredProducts.map(
                       (item: any) => (
                         <button
-                          key={item.id}
+                          key={item._id}
                           onClick={() =>
-                            handleProductClick(item.id)
+                            handleProductClick(item._id)
                           }
                           className="flex w-full items-center gap-4 border-b border-gray-100 px-4 py-4 text-left transition hover:bg-[#f8f5f0]"
                         >
