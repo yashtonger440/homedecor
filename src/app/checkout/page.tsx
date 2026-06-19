@@ -11,7 +11,7 @@ import { motion } from "framer-motion";
 import {
   FiArrowLeft, FiCreditCard, FiShield, FiTag,
   FiCheck, FiLock, FiRefreshCcw, FiChevronRight,
-  FiMapPin, FiSmartphone,
+  FiSmartphone,
 } from "react-icons/fi";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -46,8 +46,6 @@ export default function CheckoutPage() {
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<"razorpay" | "cod">("razorpay");
   const [processing, setProcessing] = useState(false);
-  const [locating, setLocating] = useState(false);
-  const [locationError, setLocationError] = useState("");
   const [cartLoaded, setCartLoaded] = useState(false);
 
   const { currentUser } = useSelector((state: RootState) => state.auth);
@@ -69,46 +67,6 @@ export default function CheckoutPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  // AUTO FILL LOCATION
-  const handleAutoFill = () => {
-    setLocationError("");
-    if (!navigator.geolocation) {
-      setLocationError("Geolocation is not supported by your browser.");
-      return;
-    }
-    setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
-        try {
-          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
-          const data = await res.json();
-          const addr = data.address || {};
-          setFormData((prev) => ({
-            ...prev,
-            address: [addr.house_number, addr.road, addr.neighbourhood || addr.suburb].filter(Boolean).join(", "),
-            city: addr.city || addr.town || addr.village || addr.county || "",
-            state: addr.state || "",
-            zip: addr.postcode || "",
-          }));
-        } catch {
-          setLocationError("Could not fetch address. Please fill manually.");
-        } finally {
-          setLocating(false);
-        }
-      },
-      (err) => {
-        setLocating(false);
-        if (err.code === err.PERMISSION_DENIED) {
-          setLocationError("Location permission denied.");
-        } else {
-          setLocationError("Could not get location. Please fill manually.");
-        }
-      },
-      { timeout: 10000 }
-    );
   };
 
   // SAVE ORDER TO DB
@@ -361,24 +319,7 @@ export default function CheckoutPage() {
               <div className="rounded-[34px] bg-white p-[34px] shadow-[0_10px_40px_rgba(0,0,0,0.05)]">
                 <div className="mb-7 flex items-center justify-between">
                   <h2 className="text-[28px] font-black text-[#111827]">Shipping Details</h2>
-                  <button
-                    onClick={handleAutoFill}
-                    disabled={locating}
-                    className="flex items-center gap-2 rounded-full border border-[#e5e7eb] bg-[#f8f5f0] px-4 py-2.5 text-[13px] font-semibold text-[#111827] transition-all hover:bg-[#111827] hover:text-white disabled:opacity-60"
-                  >
-                    {locating ? (
-                      <><div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />Detecting...</>
-                    ) : (
-                      <><FiMapPin size={14} />Use My Location</>
-                    )}
-                  </button>
                 </div>
-
-                {locationError && (
-                  <div className="mb-5 rounded-[14px] border border-red-200 bg-red-50 px-4 py-3 text-[13px] font-medium text-red-600">
-                    {locationError}
-                  </div>
-                )}
 
                 <div className="grid gap-5 sm:grid-cols-2">
                   {[

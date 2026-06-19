@@ -17,7 +17,7 @@ const OrderSchema = new mongoose.Schema(
       default: "Processing",
     },
 
-    // NEW FIELDS
+    // razorpay payment fields
     paymentMethod: {
         type: String,
         enum: ["COD", "Online"],
@@ -26,12 +26,17 @@ const OrderSchema = new mongoose.Schema(
 
     paymentStatus: {
         type: String,
-        enum: ["pending", "paid", "failed"],
-        default: "pending",
+        enum: ["Pending", "Paid", "Failed"],
+        default: "Pending",
     },
 
     paymentId: {
         type: String,
+    },
+
+    phone: {
+      type: String,
+      default: "",
     },
 
     shippingAddress: {

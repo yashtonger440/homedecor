@@ -23,9 +23,9 @@ export async function POST(req: Request) {
       status,
       shippingAddress,
       items,
-      paymentMethod, 
-      paymentStatus,  
-      paymentId, 
+      paymentMethod,
+      paymentStatus,
+      paymentId,
     } = body;
 
     if (!orderId || !userEmail || !totalAmount || !shippingAddress || !items?.length) {
@@ -110,11 +110,8 @@ export async function POST(req: Request) {
           <div style="background-color: #ffffff; padding: 24px; border-radius: 16px; margin-bottom: 20px;">
             <h3 style="color: #111827; margin: 0 0 12px 0; font-size: 16px;">📦 Shipping Address</h3>
             <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.8;">
-              ${shippingAddress.title}<br/>
-              ${shippingAddress.address}<br/>
-              ${shippingAddress.city}, ${shippingAddress.state} - ${shippingAddress.pincode}<br/>
-              📞 ${shippingAddress.phone}
-            </p>
+  ${shippingAddress}
+</p>
           </div>
           <div style="background-color: #111827; padding: 20px; border-radius: 16px; text-align: center; margin-bottom: 20px;">
             <p style="margin: 0; color: #c9a96e; font-size: 13px; letter-spacing: 2px; text-transform: uppercase;">Estimated Delivery</p>
