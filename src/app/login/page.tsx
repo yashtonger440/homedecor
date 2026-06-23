@@ -167,9 +167,7 @@ export default function LoginPage() {
                       setEmail(e.target.value)
                     }
                   />
-
                 </div>
-
               </div>
 
               {/* Password */}
@@ -203,13 +201,13 @@ export default function LoginPage() {
               </div>
 
               {/* Forgot Password */}
-              <div className="mb-7 flex justify-end sm:mb-8">
+              {/* <div className="mb-7 flex justify-end sm:mb-8">
 
                 <button className="text-[13px] font-medium text-gray-500 transition hover:text-black sm:text-sm">
                   Forgot Password?
                 </button>
 
-              </div>
+              </div> */}
 
               {/* Login Button */}
               <motion.button

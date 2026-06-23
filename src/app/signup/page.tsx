@@ -26,48 +26,130 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
 
   const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
 
   const [phone, setPhone] = useState("");
 
+  const [loading, setLoading] = useState(false);
+
   const handleSignup = async (
-    e: React.FormEvent
-  ) => {
-    e.preventDefault();
+  e: React.FormEvent
+) => {
+  e.preventDefault();
 
-    try {
-      const res = await fetch("/api/auth/signup", {
-        method: "POST",
+  // PASSWORD VALIDATION
+  if (password.length < 8) {
 
-        headers: {
-          "Content-Type": "application/json",
+    setPasswordError(
+      "Password must be at least 8 characters"
+    );
+
+    return;
+  }
+  if (!/[A-Z]/.test(password)) {
+
+    setPasswordError(
+      "Password must contain uppercase letter"
+    );
+
+    return;
+  }
+  if (!/[0-9]/.test(password)) {
+
+    setPasswordError(
+      "Password must contain number"
+    );
+
+    return;
+  }
+  if (!/[!@#$%^&*]/.test(password)) {
+
+    setPasswordError(
+      "Password must contain special character"
+    );
+    return;
+  }
+
+  // EMAIL VALIDATION
+
+  const emailRegex =
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!emailRegex.test(email)) {
+    setEmailError(
+      "Enter valid email"
+    );
+    return;
+  }
+
+  // PHONE VALIDATION
+  const phoneRegex =
+    /^[6-9]\d{9}$/;
+  if (!phoneRegex.test(phone)) {
+    setPhoneError(
+      "Enter valid mobile number"
+    );
+
+    return;
+  }
+
+  try {
+    setLoading(true);
+    const res = await fetch(
+      "/api/auth/signup",
+      {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json"
         },
+        body:JSON.stringify({
 
-        body: JSON.stringify({
           name,
           email,
           password,
-          phone,
-        }),
+          phone
+
+        })
+
       }
-      );
+    );
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if (!data.success) {
-        alert(data.message || "signup failed. please try again.");
-        return;
-      }
+    if(!data.success){
 
-      alert("Account created successfully!");
+      alert(data.message);
 
-      router.push("/login");
+      return;
 
-    } catch (error) {
-      console.log("Signup error:", error);
-
-      alert("Something went wrong. please try again.");
     }
-  };
+
+    alert(
+      "Account created successfully!"
+    );
+
+    router.push("/login");
+
+  }
+  catch(error){
+
+    console.log(error);
+
+    alert(
+      "Something went wrong"
+    );
+
+  }
+
+  finally{
+
+    setLoading(false);
+
+  }
+
+};
 
   return (
     <>
@@ -76,7 +158,7 @@ export default function SignupPage() {
       <section className="min-h-screen overflow-hidden bg-[#f8f5f0]">
         <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-4 pb-16 pt-[110px] sm:px-6 md:gap-14 lg:grid-cols-2 lg:gap-20 lg:px-8 lg:pb-20">
 
-          {/* LEFT SIDE */}
+          
           <motion.div
             initial={{ opacity: 0, x: -40 }}
             animate={{ opacity: 1, x: 0 }}
@@ -135,7 +217,6 @@ export default function SignupPage() {
             </div>
           </motion.div>
 
-          {/* RIGHT SIDE */}
           <motion.div
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
@@ -143,7 +224,6 @@ export default function SignupPage() {
             className="mx-auto w-full max-w-[520px] rounded-[28px] bg-white p-6 shadow-[0_10px_40px_rgba(0,0,0,0.06)] sm:rounded-[34px] sm:p-8 md:p-10"
           >
 
-            {/* TOP */}
             <div className="mb-8 sm:mb-9">
               <h2 className="mb-2 text-[30px] font-black text-[#111827] sm:mb-3 sm:text-[38px]">
                 Sign Up
@@ -155,13 +235,11 @@ export default function SignupPage() {
               </p>
             </div>
 
-            {/* FORM */}
             <form
               onSubmit={handleSignup}
               className="flex flex-col gap-5"
             >
 
-              {/* NAME */}
               <div>
                 <label className="mb-2.5 block text-[13px] font-semibold text-[#111827] sm:text-[14px]">
                   Full Name
@@ -188,19 +266,22 @@ export default function SignupPage() {
                   Email Address
                 </label>
 
-                <div className="flex h-[56px] items-center gap-3 rounded-[16px] border border-transparent bg-[#f8f5f0] px-4 transition focus-within:border-black sm:h-[60px] sm:px-5">
+                <div className={`flex h-[56px] items-center gap-3 rounded-[16px] border bg-[#f8f5f0] px-4 transition sm:h-[60px] sm:px-5 ${emailError ? "border-red-400" : "border-transparent focus-within:border-black"}`}>
                   <FiMail className="shrink-0 text-[18px] text-gray-400" />
-
                   <input
                     type="email"
                     placeholder="Enter your email"
                     className="w-full bg-transparent text-[14px] text-black outline-none placeholder:text-gray-400 sm:text-[15px]"
                     value={email}
-                    onChange={(e) =>
-                      setEmail(e.target.value)
-                    }
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setEmailError("");
+                    }}
                   />
                 </div>
+                {emailError && (
+                  <p className="mt-1.5 text-[12px] font-medium text-red-500">{emailError}</p>
+                )}
               </div>
 
               {/* PASSWORD */}
@@ -209,19 +290,58 @@ export default function SignupPage() {
                   Password
                 </label>
 
-                <div className="flex h-[56px] items-center gap-3 rounded-[16px] border border-transparent bg-[#f8f5f0] px-4 transition focus-within:border-black sm:h-[60px] sm:px-5">
+                <div className={`flex h-[56px] items-center gap-3 rounded-[16px] border bg-[#f8f5f0] px-4 transition sm:h-[60px] sm:px-5 ${passwordError ? "border-red-400" : "border-transparent focus-within:border-black"}`}>
                   <FiLock className="shrink-0 text-[18px] text-gray-400" />
-
                   <input
                     type="password"
                     placeholder="Create password"
                     className="w-full bg-transparent text-[14px] text-black outline-none placeholder:text-gray-400 sm:text-[15px]"
                     value={password}
-                    onChange={(e) =>
-                      setPassword(e.target.value)
-                    }
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setPasswordError("");
+                    }}
                   />
                 </div>
+
+                {/* ERROR MESSAGE */}
+                {passwordError && (
+                  <p className="mt-1.5 text-[12px] font-medium text-red-500">
+                    {passwordError}
+                  </p>
+                )}
+
+                {/* STRENGTH INDICATOR */}
+                {password.length > 0 && (
+                  <div className="mt-2">
+                    <div className="flex gap-1 mb-1.5">
+                      {[
+                        password.length >= 8,
+                        /[A-Z]/.test(password),
+                        /[0-9]/.test(password),
+                        /[!@#$%^&*]/.test(password),
+                      ].map((passed, i) => (
+                        <div
+                          key={i}
+                          className={`h-1 flex-1 rounded-full transition-all duration-300 ${passed ? "bg-emerald-500" : "bg-[#e5e7eb]"
+                            }`}
+                        />
+                      ))}
+                    </div>
+                    <div className="flex flex-wrap gap-x-3 gap-y-1">
+                      {[
+                        { text: "8+ characters", passed: password.length >= 8 },
+                        { text: "Uppercase", passed: /[A-Z]/.test(password) },
+                        { text: "Number", passed: /[0-9]/.test(password) },
+                        { text: "Special char", passed: /[!@#$%^&*]/.test(password) },
+                      ].map(({ text, passed }) => (
+                        <span key={text} className={`text-[11px] font-medium ${passed ? "text-emerald-600" : "text-gray-400"}`}>
+                          {passed ? "✓" : "○"} {text}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* PHONE */}
@@ -229,27 +349,36 @@ export default function SignupPage() {
                 <label className="mb-2.5 block text-[13px] font-semibold text-[#111827] sm:text-[14px]">
                   Mobile Number
                 </label>
-                <div className="flex h-[56px] items-center gap-3 rounded-[16px] border border-transparent bg-[#f8f5f0] px-4 transition focus-within:border-black sm:h-[60px] sm:px-5">
+                <div className={`flex h-[56px] items-center gap-3 rounded-[16px] border bg-[#f8f5f0] px-4 transition sm:h-[60px] sm:px-5 ${phoneError ? "border-red-400" : "border-transparent focus-within:border-black"}`}>
                   <FiPhone className="shrink-0 text-[18px] text-gray-400" />
                   <input
                     type="tel"
                     placeholder="Enter your mobile number"
+                    maxLength={10}
                     className="w-full bg-transparent text-[14px] text-black outline-none placeholder:text-gray-400 sm:text-[15px]"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, "");
+                      setPhone(val);
+                      setPhoneError("");
+                    }}
                   />
                 </div>
+                {phoneError && (
+                  <p className="mt-1.5 text-[12px] font-medium text-red-500">{phoneError}</p>
+                )}
               </div>
 
-              {/* BUTTON */}
               <motion.button
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 type="submit"
-                className="mt-2 flex h-[56px] items-center justify-center gap-3 rounded-full bg-black text-[14px] font-semibold text-white transition-all duration-300 hover:bg-[#1f1f1f] sm:h-[60px] sm:text-[15px]"
+                disabled={loading}
+                className="mt-2 flex h-[56px] items-center justify-center gap-3 rounded-full bg-black text-[14px] font-semibold text-white transition-all duration-300 hover:bg-[#1f1f1f] disabled:opacity-60 sm:h-[60px] sm:text-[15px]"
               >
-                Create Account
-                <FiArrowRight />
+                {loading ? "Creating Account..." : "Create Account"}
+
+                {!loading && <FiArrowRight />}
               </motion.button>
             </form>
 
