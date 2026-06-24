@@ -191,13 +191,13 @@ export default function AdminSidebar() {
           <NavLinks />
         </div>
         <div className="border-t border-[#f3f4f6] px-3 py-4 space-y-1">
-          <div className="flex items-center gap-3 rounded-2xl px-4 py-3 bg-[#f8f9fb]">
+          {/* <div className="flex items-center gap-3 rounded-2xl px-4 py-3 bg-[#f8f9fb]">
             <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#111827] text-[11px] font-black text-[#c9a96e]">A</div>
             <div className="min-w-0">
               <p className="truncate text-[13px] font-black text-[#111827]">Admin</p>
               <p className="truncate text-[11px] text-[#9ca3af]">NishMee Store</p>
             </div>
-          </div>
+          </div> */}
           <LogoutBtn />
         </div>
       </div>
